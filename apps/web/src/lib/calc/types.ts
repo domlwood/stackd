@@ -72,6 +72,8 @@ export type DealInputs = {
     entity: BuyerEntity
     additionalProperty: boolean
     nonResident: boolean
+    /** Personal buyer(s) who have never owned a home anywhere, buying to live in. */
+    firstTimeBuyer: boolean
     /** Ltd only: relief from the 17% flat rate (e.g. property rental business). */
     corporateRelief: boolean
   }
@@ -85,7 +87,13 @@ export type DealInputs = {
     completionDate: string
   }
   purchaseFinance: { ltv: Ratio }
-  refurb: { items: readonly RefurbItem[]; contingency: Ratio; months: Months }
+  refurb: {
+    items: readonly RefurbItem[]
+    /** Single refurb figure, used when there are no line items. */
+    budgetPence: Pence
+    contingency: Ratio
+    months: Months
+  }
   holding: {
     councilTaxMonthlyPence: Pence
     utilitiesMonthlyPence: Pence

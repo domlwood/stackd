@@ -18,7 +18,8 @@ import {
 } from "@workspace/ui/components/collapsible"
 import { cn } from "@workspace/ui/lib/utils"
 
-const STORAGE_PREFIX = "analysis-section:"
+// v2: every section starts collapsed; states remembered under v1 are discarded.
+const STORAGE_PREFIX = "analysis-section:v2:"
 
 function readStored(id: string): boolean | null {
   try {

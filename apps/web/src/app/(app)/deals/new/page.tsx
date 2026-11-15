@@ -1,32 +1,29 @@
 import type { Metadata } from "next"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-
-import { NewDealForm } from "@/features/deals/components/new-deal-form"
+import { NewDealFlow } from "@/features/capture/components/new-deal-flow"
+import { listFinanceProducts } from "@/features/finance/queries"
 
 export const metadata: Metadata = { title: "New deal" }
 
-export default function NewDealPage() {
+/** Default purchase finance: a residential product (current focus), else the first non-cash one. */
+const PREFERRED_TYPES = ["residential", "bridging", "btl", "cash"] as const
+
+export default async function NewDealPage({
+  searchParams,
+}: PageProps<"/deals/new">) {
+  const { url } = await searchParams
+  const products = (await listFinanceProducts()).filter((p) => !p.archivedAt)
+  const defaultProduct =
+    PREFERRED_TYPES.map((t) => products.find((p) => p.type === t)).find(
+      Boolean
+    ) ?? null
   return (
-    <div className="mx-auto w-full max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle>New deal</CardTitle>
-          <CardDescription>
-            Enter the property details. You&apos;ll set the numbers on the next
-            screen.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <NewDealForm />
-        </CardContent>
-      </Card>
+    <div className="mx-auto w-full max-w-xl">
+      <NewDealFlow
+        products={products}
+        defaultProductId={defaultProduct?.id ?? null}
+        initialUrl={typeof url === "string" ? url : undefined}
+      />
     </div>
   )
 }

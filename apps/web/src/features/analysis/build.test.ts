@@ -66,6 +66,18 @@ describe("buildAnalysis", () => {
     })
   })
 
+  it("reports incomplete stored rules instead of crashing", () => {
+    const broken = ENGLAND_RULES.map((r) =>
+      r.kind === "sdlt"
+        ? { ...r, data: { ...(r.data as object), firstTimeBuyer: undefined } }
+        : r
+    )
+    const built = buildAnalysis({ ...base, ruleRecords: broken, stored: [] })
+    expect(built.ok).toBe(false)
+    if (!built.ok)
+      expect(built.message).toMatch(/tax rules for this date are incomplete/)
+  })
+
   it("an unknown product id is treated as no product", () => {
     const built = buildAnalysis({
       ...base,

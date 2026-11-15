@@ -1,13 +1,13 @@
 "use client"
 
-import { TriangleAlertIcon } from "lucide-react"
+import { ChevronDownIcon, TriangleAlertIcon } from "lucide-react"
 
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/collapsible"
 
 import { AnalysisSection } from "@/components/blocks/analysis-section"
 import { BreakdownTree } from "@/components/blocks/breakdown-tree"
@@ -52,31 +52,50 @@ function Working({
   )
 }
 
+/** Warnings folded into one row so the page stays calm; expand to review each. */
 function Warnings() {
   const { built, openInput } = useDeal()
   if (!built.ok || built.analysis.warnings.length === 0) return null
+  const warnings = built.analysis.warnings
   return (
-    <div className="flex flex-col gap-2">
-      {built.analysis.warnings.map((w) => (
-        <Alert key={w.code} className="border-warning/50">
-          <TriangleAlertIcon className="text-warning-foreground" />
-          <AlertTitle className="sr-only">Warning</AlertTitle>
-          <AlertDescription className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="flex-1">{w.message}</span>
-            {w.inputs?.[0] ? (
-              <Button
-                size="sm"
-                variant="link"
-                className="h-auto p-0"
-                onClick={() => openInput(w.inputs?.[0] ?? null)}
-              >
-                Review
-              </Button>
-            ) : null}
-          </AlertDescription>
-        </Alert>
-      ))}
-    </div>
+    <Collapsible className="rounded-xl border border-warning/50 bg-warning/5">
+      <CollapsibleTrigger className="group flex min-h-11 w-full items-center gap-2 px-4 py-2 text-left text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+        <TriangleAlertIcon
+          className="size-4 shrink-0 text-warning-foreground"
+          aria-hidden
+        />
+        <span className="flex-1 font-medium">
+          {warnings.length} {warnings.length === 1 ? "thing" : "things"} to
+          check
+        </span>
+        <ChevronDownIcon
+          className="size-4 text-muted-foreground transition-transform group-data-[panel-open]:rotate-180"
+          aria-hidden
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <ul className="flex flex-col gap-2 border-t border-warning/30 px-4 py-3">
+          {warnings.map((w) => (
+            <li
+              key={w.code}
+              className="flex flex-wrap items-start gap-x-3 gap-y-1 text-sm"
+            >
+              <span className="flex-1">{w.message}</span>
+              {w.inputs?.[0] ? (
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="h-auto p-0"
+                  onClick={() => openInput(w.inputs?.[0] ?? null)}
+                >
+                  Review
+                </Button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
 
@@ -112,6 +131,14 @@ export function AnalysisView() {
   return (
     <div className="flex flex-col gap-3">
       <Warnings />
+
+      <div className="mt-2">
+        <h3 className="text-base font-medium">Assumptions</h3>
+        <p className="text-sm text-muted-foreground">
+          From the listing and your presets. Open a section to check or override
+          a number.
+        </p>
+      </div>
 
       <AnalysisSection
         id="purchase"
@@ -163,7 +190,6 @@ export function AnalysisView() {
         id="flip"
         title="Exit A · Flip"
         summary={formatMoney(flip.profitPence)}
-        defaultOpen
       >
         <InputList keys={["exit.gdv", ...keysFor("flip")]} />
         <Working figures={[flip.figures.profit, flip.figures.tax]} signed />
@@ -177,7 +203,6 @@ export function AnalysisView() {
             ? `${formatMoney(Math.max(0, keep.moneyLeftInPence))} left in`
             : "Not set up"
         }
-        defaultOpen
       >
         <InputList keys={["exit.gdv", ...keysFor("keep")]} />
         {keep.available ? (

@@ -5,7 +5,11 @@ export function refurbTotal(refurb: DealInputs["refurb"]): {
   totalPence: Pence
   figure: Figure
 } {
-  const itemsPence = sum(refurb.items.map((i) => i.costPence))
+  // Line items, once added, replace the single budget figure.
+  const useItems = refurb.items.length > 0
+  const itemsPence = useItems
+    ? sum(refurb.items.map((i) => i.costPence))
+    : refurb.budgetPence
   const contingencyPence = pct(itemsPence, refurb.contingency)
   const totalPence = itemsPence + contingencyPence
   return {
@@ -15,9 +19,24 @@ export function refurbTotal(refurb: DealInputs["refurb"]): {
       label: "Refurb",
       value: totalPence,
       unit: "pence",
-      formula: "Σ line items × (1 + contingency)",
-      inputs: ["refurb.contingency"],
+      formula: useItems
+        ? "Σ line items × (1 + contingency)"
+        : "Refurb budget × (1 + contingency)",
+      inputs: useItems
+        ? ["refurb.contingency"]
+        : ["refurb.budget", "refurb.contingency"],
       children: [
+        ...(useItems
+          ? []
+          : [
+              {
+                key: "refurb.budget",
+                label: "Refurb budget",
+                value: refurb.budgetPence,
+                unit: "pence" as const,
+                inputs: ["refurb.budget"],
+              },
+            ]),
         ...refurb.items.map((item) => ({
           key: `refurb.item.${item.id}`,
           label: item.description

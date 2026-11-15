@@ -19,6 +19,12 @@ export const sdltRulesSchema = z.object({
   corporateFlatRate: ratio,
   /** Flat rate applies to corporate purchases above this price (unless relief). */
   corporateFlatRateAbovePence: pence,
+  /** First-time buyer relief: 0% up to the nil band, then `rate` up to `maxPricePence`; none above it. */
+  firstTimeBuyer: z.object({
+    nilRateUptoPence: pence,
+    rate: ratio,
+    maxPricePence: pence,
+  }),
 })
 
 export const incomeTaxRulesSchema = z.object({

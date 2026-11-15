@@ -6,7 +6,8 @@ const months = z.number().int().min(0).max(120)
 
 /** Buy box: thresholds that drive the deal verdict. */
 export const buyBoxSchema = z.object({
-  minFlipRoi: ratio.default(0.2),
+  /** 0 = no ROI test: the flip is judged on profit alone. */
+  minFlipRoi: ratio.default(0),
   minFlipProfitPence: pence.nonnegative().default(2_000_000),
   maxMoneyLeftInPence: pence.nonnegative().default(1_500_000),
   minMonthlyCashflowPence: pence.default(20_000),
@@ -17,7 +18,8 @@ export const buyBoxSchema = z.object({
 export const defaultsSchema = z.object({
   buyer: z
     .object({
-      additionalProperty: z.boolean().default(true),
+      firstTimeBuyer: z.boolean().default(true),
+      additionalProperty: z.boolean().default(false),
       nonResident: z.boolean().default(false),
       corporateRelief: z.boolean().default(true),
     })
@@ -33,7 +35,7 @@ export const defaultsSchema = z.object({
     .prefault({}),
   finance: z
     .object({
-      purchaseLtv: ratio.default(0.75),
+      purchaseLtv: ratio.default(0.9),
     })
     .prefault({}),
   refurb: z
@@ -75,6 +77,8 @@ export const defaultsSchema = z.object({
       voids: ratio.default(0.05),
       maintenance: ratio.default(0.05),
       insuranceMonthlyPence: pence.nonnegative().default(3_000),
+      /** Used to estimate rent from the end value until a rent figure is entered. */
+      grossYield: ratio.default(0.065),
       groundRentServiceMonthlyPence: pence.nonnegative().default(0),
       otherMonthlyPence: pence.nonnegative().default(0),
       refinanceLegalPence: pence.nonnegative().default(100_000),

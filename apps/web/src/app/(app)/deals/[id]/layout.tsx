@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 
 import { DealProvider } from "@/features/analysis/components/deal-provider"
 import { InputSheet } from "@/features/analysis/components/input-sheet"
+import { KeyNumbers } from "@/features/analysis/components/key-numbers"
 import { MetricStrip } from "@/features/analysis/components/metric-strip"
 import { DealHeader } from "@/features/deals/components/deal-header"
 import { DealTabs } from "@/features/deals/components/deal-tabs"
@@ -26,6 +27,7 @@ export default async function DealLayout({
     <DealProvider data={data}>
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
         <DealHeader />
+        <KeyNumbers />
         <MetricStrip />
         <DealTabs dealId={id} />
         {children}

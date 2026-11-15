@@ -26,6 +26,7 @@ export type Deal = {
   description: string | null
   keyFeatures: string[]
   coverPhotoUrl: string | null
+  photoUrls: string[]
   createdAt: string
   updatedAt: string
 }

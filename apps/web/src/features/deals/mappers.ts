@@ -26,6 +26,7 @@ export function rowToDeal(row: Tables<"deal">): Deal {
     description: row.description,
     keyFeatures: row.key_features,
     coverPhotoUrl: row.cover_photo_url,
+    photoUrls: row.photo_urls,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }

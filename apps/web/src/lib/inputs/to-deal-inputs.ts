@@ -33,6 +33,7 @@ export function toDealInputs(
         entity: v["buyer.entity"] as BuyerEntity,
         additionalProperty: bool("buyer.additionalProperty"),
         nonResident: bool("buyer.nonResident"),
+        firstTimeBuyer: bool("buyer.firstTimeBuyer"),
         corporateRelief: bool("buyer.corporateRelief"),
       },
       purchase: {
@@ -49,6 +50,7 @@ export function toDealInputs(
           ...line,
           costPence: (v[refurbItemCostKey(line.id)] as Pence | undefined) ?? 0,
         })),
+        budgetPence: money("refurb.budget"),
         contingency: ratio("refurb.contingency"),
         months: months("refurb.months"),
       },

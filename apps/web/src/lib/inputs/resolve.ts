@@ -23,6 +23,8 @@ export type View = { kind: "agreed" } | { kind: "user"; userId: string }
 
 export type Provenance = {
   origin: "default" | "agreed" | "proposal"
+  /** Default computed from other inputs (an estimate), e.g. rent from end value. */
+  derived?: boolean
   /** The Agreed value (or default if none agreed), for diffing. */
   agreedValue: unknown
   /** True when this view's value differs from Agreed. */
@@ -106,6 +108,8 @@ export function resolveInputs(args: {
     }
   }
 
+  const agreedValues = { ...values }
+
   if (view.kind === "user") {
     for (const input of stored) {
       if (
@@ -122,6 +126,23 @@ export function resolveInputs(args: {
         differsFromAgreed: !sameValue(input.value, agreedValue),
         stored: input,
       }
+    }
+  }
+
+  // Derived defaults: computed from this view's values; Agreed comparison uses Agreed values.
+  for (const key of keys) {
+    const definition = inputDef(key)
+    const current = provenance[key]
+    if (!definition?.derive || current?.origin !== "default") continue
+    const value = definition.derive(values, defaults)
+    const agreedValue = definition.derive(agreedValues, defaults)
+    values[key] = value
+    provenance[key] = {
+      origin: "default",
+      derived: true,
+      agreedValue,
+      differsFromAgreed: !sameValue(value, agreedValue),
+      stored: null,
     }
   }
 

@@ -16,6 +16,7 @@ export const DEFAULTS: DefaultsSource = {
   deal: { askingPricePence: 20_000_000, suggestedGdvPence: 30_000_000 },
   defaults: {
     buyer: {
+      firstTimeBuyer: false,
       additionalProperty: true,
       nonResident: false,
       corporateRelief: true,
@@ -51,6 +52,7 @@ export const DEFAULTS: DefaultsSource = {
       groundRentServiceMonthlyPence: 0,
       otherMonthlyPence: 0,
       refinanceLegalPence: 100_000,
+      grossYield: 0.06,
     },
   },
 }
@@ -170,6 +172,47 @@ describe("resolveInputs", () => {
     expect(r.values["purchase.completionDate"]).toBe("2027-02-15")
     expect(r.values["flip.taxMode"]).toBe("corp_tax")
     expect(r.values["exit.gdv"]).toBe(30_000_000)
+  })
+})
+
+describe("derived defaults", () => {
+  it("estimates rent from the end value and the gross-yield preset", () => {
+    const r = resolveInputs({
+      stored: [stored("exit.gdv", 24_000_000)],
+      defaults: DEFAULTS,
+      view: { kind: "agreed" },
+      refurbItemIds: [],
+    })
+    expect(r.values["keep.rentMonthly"]).toBe(120_000) // £240k × 6% ÷ 12
+    expect(r.provenance["keep.rentMonthly"]).toMatchObject({
+      origin: "default",
+      derived: true,
+    })
+  })
+  it("an entered rent replaces the estimate", () => {
+    const r = resolveInputs({
+      stored: [stored("keep.rentMonthly", 99_000)],
+      defaults: DEFAULTS,
+      view: { kind: "agreed" },
+      refurbItemIds: [],
+    })
+    expect(r.values["keep.rentMonthly"]).toBe(99_000)
+  })
+  it("in a user's view the estimate follows their proposed end value and is marked as differing", () => {
+    const r = resolveInputs({
+      stored: [
+        stored("exit.gdv", 24_000_000),
+        stored("exit.gdv", 30_000_000, BLAIR),
+      ],
+      defaults: DEFAULTS,
+      view: { kind: "user", userId: BLAIR },
+      refurbItemIds: [],
+    })
+    expect(r.values["keep.rentMonthly"]).toBe(150_000)
+    expect(r.provenance["keep.rentMonthly"]).toMatchObject({
+      agreedValue: 120_000,
+      differsFromAgreed: true,
+    })
   })
 })
 

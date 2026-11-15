@@ -17,6 +17,7 @@ import type { CSSProperties, ReactNode } from "react"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 
 import { AppSidebar } from "./app-sidebar"
+import { CommandPalette } from "./command-palette"
 import { MobileTabBar } from "./mobile-tab-bar"
 import { SiteHeader } from "./site-header"
 
@@ -47,7 +48,7 @@ export function AppShell({
       </a>
       <AppSidebar user={user} workspaceName={workspaceName} />
       <SidebarInset>
-        <SiteHeader actions={headerActions} user={user} />
+        <SiteHeader actions={headerActions ?? <CommandPalette />} user={user} />
         <main
           id="main"
           tabIndex={-1}

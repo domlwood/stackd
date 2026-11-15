@@ -1,3 +1,5 @@
+import { ZodError } from "zod"
+
 import { analyseDeal, type FullDealAnalysis } from "@/lib/calc"
 import {
   MissingTaxRulesError,
@@ -92,6 +94,14 @@ export function buildAnalysis(args: {
       refiProduct,
     }
   } catch (error) {
+    if (error instanceof ZodError) {
+      return {
+        ok: false,
+        resolved,
+        message:
+          "The stored tax rules for this date are incomplete, so we can't run the numbers. Check the tax rules in Settings.",
+      }
+    }
     if (error instanceof MissingTaxRulesError) {
       return {
         ok: false,

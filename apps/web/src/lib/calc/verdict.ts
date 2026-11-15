@@ -45,13 +45,18 @@ export function verdict(
 ): Verdict {
   const money = (p: number) => `£${Math.round(p / 100).toLocaleString("en-GB")}`
   const criteria: Criterion[] = [
-    {
-      exit: "flip",
-      key: "flip.roi",
-      label: `Flip ROI ≥ ${+(buyBox.minFlipRoi * 100).toFixed(1)}%`,
-      pass: flip.roi >= buyBox.minFlipRoi,
-      shortfall: atLeast(flip.roi, buyBox.minFlipRoi),
-    },
+    // A zero ROI minimum means "profit only": the ROI test is dropped rather than trivially passed.
+    ...(buyBox.minFlipRoi > 0
+      ? [
+          {
+            exit: "flip" as const,
+            key: "flip.roi",
+            label: `Flip ROI ≥ ${+(buyBox.minFlipRoi * 100).toFixed(1)}%`,
+            pass: flip.roi >= buyBox.minFlipRoi,
+            shortfall: atLeast(flip.roi, buyBox.minFlipRoi),
+          },
+        ]
+      : []),
     {
       exit: "flip",
       key: "flip.profit",

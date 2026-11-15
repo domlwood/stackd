@@ -15,6 +15,9 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
 }) => {
   const address = `E2E ${Date.now()} Test Street, Leeds`
   await page.goto("/deals/new")
+  await page
+    .getByRole("button", { name: "Enter details manually instead" })
+    .click()
   await page.getByLabel("Address").fill(address)
   await page.getByLabel("Postcode").fill("ls6 1ab")
   await page.getByLabel("Asking price").fill("150k")
@@ -22,21 +25,17 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
   await expect(page.getByRole("heading", { name: address })).toBeVisible()
   await expect(page.getByText("LS6 1AB")).toBeVisible()
 
-  // Edit the end value: analysis recalculates and the change is logged.
-  await page
-    .getByRole("button", { name: /End value \(GDV\)/ })
-    .first()
-    .click()
-  const dialog = page.getByRole("dialog")
-  await dialog.getByLabel("Value", { exact: true }).fill("210000")
-  await dialog.getByLabel("Source", { exact: true }).fill("E2E comparables")
-  await dialog.getByRole("button", { name: "Save" }).click()
-  await expect(
-    page.getByRole("button", { name: /End value \(GDV\).*£210,000/ }).first()
-  ).toBeVisible()
+  // The two numbers we ask for: refurb cost and end value (inline, saved on Enter).
+  await page.getByLabel("Refurb cost").fill("25000")
+  await page.getByLabel("Refurb cost").press("Enter")
+  await page.getByLabel("End value").fill("210000")
+  await page.getByLabel("End value").press("Enter")
+  await expect(page.getByText("Using the asking price for now.")).toHaveCount(0)
+  await expect(page.getByText("Saving…")).toHaveCount(0)
 
   await page.getByRole("link", { name: "Activity" }).click()
   await expect(page.getByText("set End value (GDV) to £210,000")).toBeVisible()
+  await expect(page.getByText("set Refurb cost to £25,000")).toBeVisible()
 
   // Passing requires a reason.
   await page.getByRole("combobox").first().click()
@@ -53,4 +52,21 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
   await page.getByRole("button", { name: "Delete deal" }).click()
   await page.waitForURL("**/")
   await expect(page.getByText(address)).toHaveCount(0)
+})
+
+test("a non-Rightmove link falls back to manual entry with the link kept", async ({
+  page,
+}) => {
+  await page.goto("/deals/new")
+  await page
+    .getByLabel("Rightmove link", { exact: true })
+    .fill("https://www.example.com/some-house")
+  await page.getByRole("button", { name: "Analyse", exact: true }).click()
+  // Generous timeout: the first call compiles the server action in dev.
+  await expect(
+    page.getByText("That doesn't look like a Rightmove property link.")
+  ).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByLabel("Listing link")).toHaveValue(
+    "https://www.example.com/some-house"
+  )
 })

@@ -2,7 +2,9 @@ import { DEFAULT_SETTINGS, settingsSchema } from "./schemas"
 
 describe("settingsSchema", () => {
   it("fills every default from an empty object", () => {
-    expect(DEFAULT_SETTINGS.buyBox.minFlipRoi).toBe(0.2)
+    expect(DEFAULT_SETTINGS.buyBox.minFlipRoi).toBe(0)
+    expect(DEFAULT_SETTINGS.buyBox.minFlipProfitPence).toBe(2_000_000)
+    expect(DEFAULT_SETTINGS.defaults.buyer.firstTimeBuyer).toBe(true)
     expect(DEFAULT_SETTINGS.defaults.comps.radiusMetres).toBe(1_000)
     expect(DEFAULT_SETTINGS.buyerEntity).toBe("personal")
   })

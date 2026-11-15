@@ -19,6 +19,7 @@ describe("refurb", () => {
         { id: "a", category: "Kitchen", description: "", costPence: 1_000_000 },
         { id: "b", category: "Bath", description: "", costPence: 500_000 },
       ],
+      budgetPence: 0,
       contingency: 0.1,
       months: 3,
     })
@@ -51,6 +52,32 @@ describe("refurb", () => {
       )
     )
   })
+})
+
+it("uses the single refurb budget when there are no line items", () => {
+  const r = refurbTotal({
+    items: [],
+    budgetPence: 2_500_000,
+    contingency: 0.1,
+    months: 3,
+  })
+  expect(r.totalPence).toBe(2_750_000)
+  expect(r.figure.children?.map((c) => c.key)).toEqual([
+    "refurb.budget",
+    "refurb.contingency",
+  ])
+})
+
+it("line items replace the budget once added", () => {
+  const r = refurbTotal({
+    items: [
+      { id: "a", category: "Kitchen", description: "", costPence: 1_000_000 },
+    ],
+    budgetPence: 2_500_000,
+    contingency: 0,
+    months: 3,
+  })
+  expect(r.totalPence).toBe(1_000_000)
 })
 
 describe("holding", () => {

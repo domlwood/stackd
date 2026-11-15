@@ -98,6 +98,7 @@ export const INPUTS: DealInputs = {
     entity: "personal",
     additionalProperty: true,
     nonResident: false,
+    firstTimeBuyer: false,
     corporateRelief: false,
   },
   purchase: {
@@ -113,6 +114,7 @@ export const INPUTS: DealInputs = {
     items: [
       { id: "r1", category: "Kitchen", description: "", costPence: 3_000_000 },
     ],
+    budgetPence: 0,
     contingency: 0.1,
     months: 4,
   },

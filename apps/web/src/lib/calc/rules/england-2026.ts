@@ -28,6 +28,12 @@ export const ENGLAND_RULES: readonly RuleSetRecord[] = [
       nonResidentSurcharge: 0.02,
       corporateFlatRate: 0.17,
       corporateFlatRateAbovePence: 50_000_000,
+      // No SDLT up to £300k; 5% on £300,001–£500,000; no relief over £500k.
+      firstTimeBuyer: {
+        nilRateUptoPence: 30_000_000,
+        rate: 0.05,
+        maxPricePence: 50_000_000,
+      },
     },
   },
   {

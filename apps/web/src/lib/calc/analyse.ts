@@ -235,6 +235,18 @@ export function analyseCore(
       })
     }
   }
+  if (
+    sdlt.basis === "first_time_buyer" ||
+    (ctx.purchaseProduct?.type === "residential" &&
+      inputs.buyer.entity === "personal")
+  ) {
+    warnings.push({
+      code: "owner_occupier_terms",
+      message:
+        "First-time buyer relief and residential mortgages assume you'll live there. Selling or letting soon after buying can breach the mortgage terms or mean the relief must be repaid. Check with your broker and conveyancer before relying on either exit.",
+      inputs: ["buyer.firstTimeBuyer", "purchaseFinance.product"],
+    })
+  }
   if (affordability && !affordability.affordable) {
     warnings.push({
       code: "unaffordable",

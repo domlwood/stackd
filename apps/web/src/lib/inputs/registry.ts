@@ -28,6 +28,7 @@ export type DefaultsSource = {
   deal: { askingPricePence: Pence | null; suggestedGdvPence: Pence | null }
   defaults: {
     buyer: {
+      firstTimeBuyer: boolean
       additionalProperty: boolean
       nonResident: boolean
       corporateRelief: boolean
@@ -63,6 +64,8 @@ export type DefaultsSource = {
       groundRentServiceMonthlyPence: Pence
       otherMonthlyPence: Pence
       refinanceLegalPence: Pence
+      /** Gross yield used to estimate rent from the end value when no rent is entered. */
+      grossYield: Ratio
     }
   }
 }
@@ -76,6 +79,11 @@ export type InputDef<T = unknown> = {
   options?: Record<string, string>
   schema: z.ZodType<T>
   defaultValue: (source: DefaultsSource) => T
+  /**
+   * Optional default derived from other resolved inputs (e.g. rent from end value).
+   * Applied only while the input has no stored value.
+   */
+  derive?: (values: Record<string, unknown>, source: DefaultsSource) => T
 }
 
 const money = z.number().int().nonnegative()
@@ -110,6 +118,16 @@ export const INPUT_DEFS = [
     options: { personal: "Personal name", ltd: "Limited company" },
     schema: z.enum(["personal", "ltd"]),
     defaultValue: (s) => s.buyerEntity,
+  }),
+  def({
+    key: "buyer.firstTimeBuyer",
+    label: "First-time buyer",
+    section: "buyer",
+    kind: "boolean",
+    description:
+      "Every buyer has never owned a home anywhere and you'll live in it. Unlocks first-time buyer stamp duty relief.",
+    schema: z.boolean(),
+    defaultValue: (s) => s.defaults.buyer.firstTimeBuyer,
   }),
   def({
     key: "buyer.additionalProperty",
@@ -209,6 +227,16 @@ export const INPUT_DEFS = [
   }),
 
   // Refurb
+  def({
+    key: "refurb.budget",
+    label: "Refurb cost",
+    section: "refurb",
+    kind: "money",
+    description:
+      "Your all-in refurb figure. Add line items instead once you have quotes.",
+    schema: money,
+    defaultValue: () => 0,
+  }),
   def({
     key: "refurb.contingency",
     label: "Contingency",
@@ -348,8 +376,14 @@ export const INPUT_DEFS = [
     label: "Rent (monthly)",
     section: "keep",
     kind: "money",
+    description:
+      "Estimated from the end value and your gross-yield preset until you enter a figure.",
     schema: money,
     defaultValue: () => 0,
+    derive: (values, s) =>
+      Math.round(
+        ((values["exit.gdv"] as number) * s.defaults.keep.grossYield) / 12
+      ),
   }),
   def({
     key: "keep.management",

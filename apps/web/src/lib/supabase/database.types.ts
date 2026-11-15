@@ -92,6 +92,7 @@ export type Database = {
           listing_url: string | null
           lng: number | null
           passed_reason: string | null
+          photo_urls: string[]
           postcode: string | null
           property_type: string | null
           status: string
@@ -120,6 +121,7 @@ export type Database = {
           listing_url?: string | null
           lng?: number | null
           passed_reason?: string | null
+          photo_urls?: string[]
           postcode?: string | null
           property_type?: string | null
           status?: string
@@ -148,6 +150,7 @@ export type Database = {
           listing_url?: string | null
           lng?: number | null
           passed_reason?: string | null
+          photo_urls?: string[]
           postcode?: string | null
           property_type?: string | null
           status?: string
@@ -450,6 +453,73 @@ export type Database = {
           },
           {
             foreignKeyName: "fund_pot_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_snapshot: {
+        Row: {
+          created_by: string | null
+          deal_id: string | null
+          error: string | null
+          fetched_at: string
+          id: string
+          parsed: Json
+          provider: string
+          provider_ref: string | null
+          raw_path: string | null
+          source_url: string
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          created_by?: string | null
+          deal_id?: string | null
+          error?: string | null
+          fetched_at?: string
+          id?: string
+          parsed?: Json
+          provider: string
+          provider_ref?: string | null
+          raw_path?: string | null
+          source_url: string
+          status: string
+          workspace_id: string
+        }
+        Update: {
+          created_by?: string | null
+          deal_id?: string | null
+          error?: string | null
+          fetched_at?: string
+          id?: string
+          parsed?: Json
+          provider?: string
+          provider_ref?: string | null
+          raw_path?: string | null
+          source_url?: string
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_snapshot_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_snapshot_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_snapshot_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspace"

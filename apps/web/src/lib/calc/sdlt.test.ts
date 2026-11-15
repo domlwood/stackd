@@ -8,8 +8,10 @@ const personal: DealInputs["buyer"] = {
   entity: "personal",
   additionalProperty: false,
   nonResident: false,
+  firstTimeBuyer: false,
   corporateRelief: false,
 }
+const ftb = { ...personal, firstTimeBuyer: true }
 const additional = { ...personal, additionalProperty: true }
 const ltd = { ...personal, entity: "ltd" as const }
 const sdlt = (buyer: DealInputs["buyer"], pounds: number) =>
@@ -65,6 +67,34 @@ describe("SDLT", () => {
     const result = sdlt(additional, 400_000)
     expect(result.figure.children?.reduce((t, c) => t + c.value, 0)).toBe(
       result.totalPence
+    )
+  })
+})
+
+describe("SDLT first-time buyer relief", () => {
+  it("nothing to pay up to £300,000", () => {
+    expect(sdlt(ftb, 300_000).totalPence).toBe(0)
+    expect(sdlt(ftb, 300_000).basis).toBe("first_time_buyer")
+  })
+  it("5% on the part from £300,001 to £500,000 (gov.uk)", () => {
+    expect(sdlt(ftb, 400_000).totalPence).toBe(500_000)
+    expect(sdlt(ftb, 500_000).totalPence).toBe(1_000_000)
+  })
+  it("no relief over £500,000: standard rates apply", () => {
+    expect(sdlt(ftb, 500_001).basis).toBe("standard")
+    expect(sdlt(ftb, 500_001).totalPence).toBe(
+      sdlt(personal, 500_001).totalPence
+    )
+  })
+  it("doesn't apply to an additional property or a company", () => {
+    expect(sdlt({ ...ftb, additionalProperty: true }, 200_000).basis).toBe(
+      "higher_rates"
+    )
+    expect(sdlt({ ...ftb, entity: "ltd" }, 200_000).basis).toBe("higher_rates")
+  })
+  it("non-resident surcharge still applies on top", () => {
+    expect(sdlt({ ...ftb, nonResident: true }, 200_000).totalPence).toBe(
+      400_000
     )
   })
 })

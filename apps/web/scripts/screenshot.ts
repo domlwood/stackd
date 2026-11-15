@@ -40,6 +40,10 @@ async function main() {
       await signIn(page)
       await page.getByRole("heading", { name: /Deals/ }).waitFor()
       await shot("pipeline")
+      await page.goto(BASE + "/deals/new")
+      await page.getByRole("button", { name: "Analyse", exact: true }).waitFor()
+      await shot("new-deal", false)
+      await page.goto(BASE + "/")
 
       await page
         .getByRole("link", { name: "8 Elm Grove, Sheffield" })
@@ -59,6 +63,7 @@ async function main() {
           .click()
         await page.waitForTimeout(300)
         await shot("deal-expanded")
+        await page.getByRole("button", { name: /Exit B · Keep/ }).click()
         await page.getByRole("button", { name: /Rent \(monthly\)/ }).click()
         await page.getByRole("dialog").waitFor()
         await page.waitForTimeout(400)
