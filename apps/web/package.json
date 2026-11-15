@@ -14,6 +14,7 @@
     "e2e": "playwright test",
     "seed": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed.ts",
     "user:create": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/create-user.ts",
+    "user:update": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/update-user.ts",
     "verify:live": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-finance.ts && tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-tax-rules.ts",
     "screenshots": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/screenshot.ts",
     "e2e:cleanup": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/cleanup-e2e.ts"

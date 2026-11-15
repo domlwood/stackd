@@ -142,6 +142,58 @@ describe("parseRightmoveHtml (fallbacks)", () => {
   })
 })
 
+describe("parseRightmoveHtml (real encoded page model)", () => {
+  it("reads listing fields from the reference table used by demo.html", () => {
+    const r = parseRightmoveHtml(
+      fixture("rightmove-real-encoded-model.html"),
+      "https://www.rightmove.co.uk/properties/95063484"
+    )
+    const f = r.fields
+    expect(r.status).toBe("ok")
+    expect(f.addressLine?.value).toBe("Tottington Road, Bury, Bury, BL8")
+    expect(f.postcode).toMatchObject({ value: "BL8 1SH", confidence: "high" })
+    expect(f.outcode).toBeUndefined()
+    expect(f.askingPricePence?.value).toBe(14_000_000)
+    expect(f.priceQualifier?.value).toBe("Offers in Region of")
+    expect(f.beds?.value).toBe(2)
+    expect(f.baths?.value).toBe(1)
+    expect(f.propertyType?.value).toBe("terraced")
+    expect(f.tenure).toMatchObject({ value: "leasehold", confidence: "high" })
+    expect(f.agent?.value).toBe("Northwood, Wigan")
+    expect(f.photos?.value).toHaveLength(9)
+    expect(f.photos?.value[0]).toBe(
+      "https://media.rightmove.co.uk/property-photo/b08bab972/95063484/b08bab97242d09ce254b92456d247913.jpeg"
+    )
+    expect(f.keyFeatures?.value).toHaveLength(6)
+    expect(f.keyFeatures?.value).toContain(
+      "Close to amenities/transport links & schools"
+    )
+    expect(f.description?.value).toContain(
+      "For sale is this two-bedroom terraced house"
+    )
+    expect(f.listedAt?.value).toBe("2026-10-23")
+    expect(f.lat?.value).toBe(53.60136)
+    expect(f.lng?.value).toBe(-2.3179)
+    // The listing says "Ask agent": don't invent area from other numbers.
+    expect(f.floorAreaSqm).toBeUndefined()
+  })
+
+  it("also accepts an unencoded __PAGE_MODEL", () => {
+    const html = fixture("rightmove-synthetic-model.html").replace(
+      "window.PAGE_MODEL",
+      "window.__PAGE_MODEL"
+    )
+    expect(parseRightmoveHtml(html, URL_1).fields.baths?.value).toBe(1)
+  })
+
+  it("keeps the meta fallback when the encoded model is malformed", () => {
+    const html = `<script>window.__PAGE_MODEL = {"encoding":"on","data":"invalid"};</script>${fixture("rightmove-synthetic-meta-only.html")}`
+    expect(parseRightmoveHtml(html, URL_1).fields.askingPricePence?.value).toBe(
+      8_500_000
+    )
+  })
+})
+
 const realFixture = join(__dirname, "__fixtures__", "rightmove-real-1.html")
 describe.runIf(existsSync(realFixture))(
   "parseRightmoveHtml (real saved page)",

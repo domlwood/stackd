@@ -6,6 +6,7 @@ import {
   stripTags,
 } from "./json-extract"
 import { fetchText, IngestError } from "./http"
+import { decodeRightmoveModel } from "./rightmove-model"
 import {
   listingStatus,
   type Confidence,
@@ -178,7 +179,8 @@ function fromPropertyModel(p: Record<string, unknown>): Partial<ListingFields> {
   const features = arr(p.keyFeatures)
     .map(str)
     .filter((s): s is string => Boolean(s))
-  if (features.length) out.keyFeatures = field(features, "high", src)
+  if (features.length)
+    out.keyFeatures = field(features.map(stripTags), "high", src)
 
   const text = obj(p.text)
   const description = str(text.description)
@@ -269,6 +271,7 @@ function fromText(fields: Partial<ListingFields>): Partial<ListingFields> {
 export function parseRightmoveHtml(html: string, url: string): ListingResult {
   const ref = parseRightmoveUrl(url)
   const models = [
+    extractJsonAfter(html, /window\.__PAGE_MODEL\s*=\s*/),
     extractJsonAfter(html, /window\.PAGE_MODEL\s*=\s*/),
     ...scriptContents(html, "application/json").map((s) => {
       try {
@@ -277,7 +280,7 @@ export function parseRightmoveHtml(html: string, url: string): ListingResult {
         return undefined
       }
     }),
-  ]
+  ].map(decodeRightmoveModel)
   const property = models
     .map((m) =>
       findObject(

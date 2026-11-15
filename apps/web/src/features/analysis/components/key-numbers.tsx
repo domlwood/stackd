@@ -81,13 +81,14 @@ function InlineMoney({
 }
 
 /**
- * The only numbers we ask for: refurb cost and end value. Everything else comes
+ * The main deal numbers: offer price, refurb cost and end value. Everything else comes
  * from the listing and your presets (shown underneath as Assumptions).
  */
 export function KeyNumbers() {
   const { built, data, pending } = useDeal()
   const gdv = built.resolved.provenance["exit.gdv"]
   const gdvMissing = gdv?.origin === "default"
+  const offerMissing = !built.resolved.values["purchase.price"]
   const lines = data.refurbLines.length
   const refurbMissing = lines === 0 && !built.resolved.values["refurb.budget"]
   const rent = built.resolved.values["keep.rentMonthly"] as number
@@ -107,14 +108,26 @@ export function KeyNumbers() {
             {pending ? "Saving…" : ""}
           </span>
         </h3>
-        {gdvMissing || refurbMissing ? (
+        {offerMissing || gdvMissing || refurbMissing ? (
           <span className="flex items-center gap-1 text-xs text-warning-foreground">
             <CircleAlertIcon className="size-3.5" aria-hidden /> Needed for a
             reliable verdict
           </span>
         ) : null}
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="col-span-2 sm:col-span-1">
+          <InlineMoney
+            inputKey="purchase.price"
+            label="Offer price"
+            hint={
+              data.deal.askingPricePence !== null
+                ? `Asking price ${formatMoney(data.deal.askingPricePence)}.`
+                : "Enter your planned purchase price."
+            }
+            needsAttention={offerMissing}
+          />
+        </div>
         {lines > 0 ? (
           <div className="flex min-w-0 flex-col gap-1.5">
             <span className="text-sm font-medium">Refurb cost</span>
