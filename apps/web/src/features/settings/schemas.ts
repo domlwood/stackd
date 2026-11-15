@@ -1,0 +1,76 @@
+import { z } from "zod"
+
+const pence = z.number().int()
+const ratio = z.number().min(0).max(1)
+const months = z.number().int().min(0).max(120)
+
+/** Buy box: thresholds that drive the deal verdict. */
+export const buyBoxSchema = z.object({
+  minFlipRoi: ratio.default(0.2),
+  minFlipProfitPence: pence.nonnegative().default(2_000_000),
+  maxMoneyLeftInPence: pence.nonnegative().default(1_500_000),
+  minMonthlyCashflowPence: pence.default(20_000),
+  marginalTolerance: ratio.default(0.1),
+})
+
+/** Default assumptions used to pre-fill new deals. */
+export const defaultsSchema = z.object({
+  purchase: z
+    .object({
+      legalPence: pence.nonnegative().default(180_000),
+      surveyPence: pence.nonnegative().default(60_000),
+      brokerPence: pence.nonnegative().default(0),
+    })
+    .prefault({}),
+  refurb: z
+    .object({
+      contingency: ratio.default(0.1),
+      months: months.default(3),
+    })
+    .prefault({}),
+  holding: z
+    .object({
+      councilTaxMonthlyPence: pence.nonnegative().default(15_000),
+      utilitiesMonthlyPence: pence.nonnegative().default(10_000),
+      insuranceMonthlyPence: pence.nonnegative().default(4_000),
+    })
+    .prefault({}),
+  flip: z
+    .object({
+      agentFee: ratio.default(0.012),
+      agentFeeVat: z.boolean().default(true),
+      saleLegalPence: pence.nonnegative().default(150_000),
+      monthsToSell: months.default(4),
+      assumedIncomeTaxRate: ratio.default(0.4),
+    })
+    .prefault({}),
+  keep: z
+    .object({
+      refinanceLtv: ratio.default(0.75),
+      management: ratio.default(0.1),
+      voids: ratio.default(0.05),
+      maintenance: ratio.default(0.05),
+      insuranceMonthlyPence: pence.nonnegative().default(3_000),
+    })
+    .prefault({}),
+  comps: z
+    .object({
+      radiusMetres: z.number().int().min(100).max(5_000).default(1_000),
+      windowMonths: months.default(24),
+      matchPropertyType: z.boolean().default(true),
+    })
+    .prefault({}),
+})
+
+export const settingsSchema = z.object({
+  buyBox: buyBoxSchema.prefault({}),
+  defaults: defaultsSchema.prefault({}),
+  staleAfterDays: z.number().int().min(1).max(3650).default(90),
+  buyerEntity: z.enum(["personal", "ltd"]).default("personal"),
+})
+
+export type BuyBox = z.infer<typeof buyBoxSchema>
+export type DealDefaults = z.infer<typeof defaultsSchema>
+export type WorkspaceSettings = z.infer<typeof settingsSchema>
+
+export const DEFAULT_SETTINGS: WorkspaceSettings = settingsSchema.parse({})
