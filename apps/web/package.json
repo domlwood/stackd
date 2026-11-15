@@ -15,12 +15,14 @@
     "seed": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed.ts",
     "user:create": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/create-user.ts",
     "verify:live": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-finance.ts && tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-tax-rules.ts",
-    "screenshots": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/screenshot.ts"
+    "screenshots": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/screenshot.ts",
+    "e2e:cleanup": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/cleanup-e2e.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.6",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
+    "@tanstack/react-table": "^8.21.3",
     "@workspace/ui": "*",
     "lucide-react": "^1.73.0",
     "next": "^16.4.6",

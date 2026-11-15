@@ -54,13 +54,11 @@ async function main() {
     updateError?.message ?? "0 rows"
   )
 
-  const { error: globalInsert } = await db
-    .from("tax_rule_set")
-    .insert({
-      kind: "vat",
-      effective_from: "2030-01-01",
-      data: { standardRate: 0.2 },
-    })
+  const { error: globalInsert } = await db.from("tax_rule_set").insert({
+    kind: "vat",
+    effective_from: "2030-01-01",
+    data: { standardRate: 0.2 },
+  })
   check("clients can't add global rules", !!globalInsert, globalInsert?.code)
   await db.auth.signOut()
 }

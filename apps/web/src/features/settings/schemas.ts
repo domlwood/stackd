@@ -40,6 +40,14 @@ export const defaultsSchema = z.object({
     .object({
       contingency: ratio.default(0.1),
       months: months.default(3),
+      /** Quick-estimate rates in pence per sq ft, by condition. */
+      conditionRatesPencePerSqft: z
+        .object({
+          light: pence.nonnegative().default(2_500),
+          medium: pence.nonnegative().default(4_500),
+          heavy: pence.nonnegative().default(7_000),
+        })
+        .prefault({}),
     })
     .prefault({}),
   holding: z
