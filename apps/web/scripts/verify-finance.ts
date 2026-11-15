@@ -110,16 +110,14 @@ async function main() {
   )
   check("RPC rejects a foreign workspace", !!badWs, badWs?.message)
 
-  const { error: badBand } = await db
-    .from("erc_band")
-    .insert({
-      workspace_id: ws,
-      product_id: id ?? "",
-      ordinal: 9,
-      from_month: 5,
-      to_month: 2,
-      pct: 0.01,
-    })
+  const { error: badBand } = await db.from("erc_band").insert({
+    workspace_id: ws,
+    product_id: id ?? "",
+    ordinal: 9,
+    from_month: 5,
+    to_month: 2,
+    pct: 0.01,
+  })
   check("DB backstop rejects inverted ERC band", !!badBand, badBand?.code)
 
   await db

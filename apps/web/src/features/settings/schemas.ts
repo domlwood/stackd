@@ -15,11 +15,25 @@ export const buyBoxSchema = z.object({
 
 /** Default assumptions used to pre-fill new deals. */
 export const defaultsSchema = z.object({
+  buyer: z
+    .object({
+      additionalProperty: z.boolean().default(true),
+      nonResident: z.boolean().default(false),
+      corporateRelief: z.boolean().default(true),
+    })
+    .prefault({}),
   purchase: z
     .object({
       legalPence: pence.nonnegative().default(180_000),
       surveyPence: pence.nonnegative().default(60_000),
-      brokerPence: pence.nonnegative().default(0),
+      sourcingPence: pence.nonnegative().default(0),
+      otherPence: pence.nonnegative().default(0),
+      monthsToComplete: months.default(3),
+    })
+    .prefault({}),
+  finance: z
+    .object({
+      purchaseLtv: ratio.default(0.75),
     })
     .prefault({}),
   refurb: z
@@ -33,6 +47,7 @@ export const defaultsSchema = z.object({
       councilTaxMonthlyPence: pence.nonnegative().default(15_000),
       utilitiesMonthlyPence: pence.nonnegative().default(10_000),
       insuranceMonthlyPence: pence.nonnegative().default(4_000),
+      otherMonthlyPence: pence.nonnegative().default(0),
     })
     .prefault({}),
   flip: z
@@ -41,7 +56,8 @@ export const defaultsSchema = z.object({
       agentFeeVat: z.boolean().default(true),
       saleLegalPence: pence.nonnegative().default(150_000),
       monthsToSell: months.default(4),
-      assumedIncomeTaxRate: ratio.default(0.4),
+      /** Other taxable income the flip profit stacks on (income tax / CGT estimates). */
+      otherIncomePence: pence.nonnegative().default(5_027_000),
     })
     .prefault({}),
   keep: z
@@ -51,6 +67,9 @@ export const defaultsSchema = z.object({
       voids: ratio.default(0.05),
       maintenance: ratio.default(0.05),
       insuranceMonthlyPence: pence.nonnegative().default(3_000),
+      groundRentServiceMonthlyPence: pence.nonnegative().default(0),
+      otherMonthlyPence: pence.nonnegative().default(0),
+      refinanceLegalPence: pence.nonnegative().default(100_000),
     })
     .prefault({}),
   comps: z

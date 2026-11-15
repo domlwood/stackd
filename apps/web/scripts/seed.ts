@@ -1,6 +1,7 @@
 /**
  * Seeds the hosted/local Supabase project. Idempotent.
  * Phase 1: 2 users, workspace, settings. Phase 2: 3 fund pots, 4 finance products.
+ * Phase 3: verified England tax rule sets (global).
  * Later phases add deals, comps, proposals and comments.
  */
 import { DEFAULT_SETTINGS } from "@/features/settings/schemas"
@@ -8,6 +9,7 @@ import { DEFAULT_WORKSPACE_NAME } from "@/lib/app"
 import { createSupabaseAdminClient } from "@/lib/supabase/admin"
 import { addMember, ensureWorkspace, requireEnv, upsertUser } from "./lib"
 import { seedFinance } from "./seed-finance"
+import { seedTaxRules } from "./seed-tax-rules"
 
 async function main() {
   const admin = createSupabaseAdminClient()
@@ -40,6 +42,7 @@ async function main() {
   )
   if (error) throw error
   await seedFinance(admin, workspaceId, { a: userIds.A, b: userIds.B })
+  await seedTaxRules(admin)
   console.log(`✔ workspace ${workspaceId} seeded`)
 }
 

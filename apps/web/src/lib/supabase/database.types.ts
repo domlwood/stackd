@@ -302,6 +302,66 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_rule_set: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          effective_from: string
+          effective_to: string | null
+          id: string
+          jurisdiction: string
+          kind: string
+          note: string | null
+          source_url: string | null
+          verified_at: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data: Json
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction?: string
+          kind: string
+          note?: string | null
+          source_url?: string | null
+          verified_at?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction?: string
+          kind?: string
+          note?: string | null
+          source_url?: string | null
+          verified_at?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_rule_set_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_rule_set_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace: {
         Row: {
           created_at: string

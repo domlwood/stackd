@@ -14,7 +14,7 @@
     "e2e": "playwright test",
     "seed": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed.ts",
     "user:create": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/create-user.ts",
-    "verify:live": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-finance.ts",
+    "verify:live": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-finance.ts && tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/verify-tax-rules.ts",
     "screenshots": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/screenshot.ts"
   },
   "dependencies": {
@@ -41,13 +41,14 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10.15.0",
     "eslint-config-next": "^16.4.6",
+    "fast-check": "^4.10.2",
     "jsdom": "^31.0.1",
     "tailwindcss": "^4.3.5",
     "tsx": "^4.23.15",
     "typescript-eslint": "^8.72.2",
-    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.1.0"
   }
 }
