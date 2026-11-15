@@ -1,7 +1,11 @@
+dist/
 node_modules/
+.turbo/
+.next/
 coverage/
-.pnpm-store/
-pnpm-lock.yaml
+playwright-report/
+test-results/
 package-lock.json
 pnpm-lock.yaml
-yarn.lock
+.pnpm-store/
+apps/web/src/lib/supabase/database.types.ts
