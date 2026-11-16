@@ -17,7 +17,7 @@ import {
 } from "@workspace/ui/components/toggle-group"
 
 import { PagePlaceholder } from "@/components/blocks/page-placeholder"
-import { DEAL_VIEWS, inDealView, isActiveDeal, type DealView } from "../active"
+import { DEAL_VIEWS, inDealView, type DealView } from "../active"
 import type { PortfolioDeal } from "../portfolio"
 import type { DealStatus } from "../schemas"
 import { DealCard } from "./deal-card"
@@ -53,7 +53,7 @@ function MovableCard({
 
 export function PipelineView({ deals }: { deals: PortfolioDeal[] }) {
   const [query, setQuery] = useState("")
-  const [view, setView] = useState<DealView>("active")
+  const [view, setView] = useState<DealView>("all")
   const [optimistic, move] = useOptimistic(
     deals,
     (list: PortfolioDeal[], m: { id: string; status: DealStatus }) =>
@@ -79,10 +79,6 @@ export function PipelineView({ deals }: { deals: PortfolioDeal[] }) {
   const shown = optimistic.filter(
     (d) => inDealView(d, view) && matchesSearch(d, query)
   )
-  // Not archived, but not in play either (passed, bought or doesn't stack).
-  const inactive = optimistic.filter(
-    (d) => !d.archivedAt && !isActiveDeal(d)
-  ).length
 
   return (
     <section aria-labelledby="deals-heading" className="flex flex-col gap-3">
@@ -128,30 +124,13 @@ export function PipelineView({ deals }: { deals: PortfolioDeal[] }) {
         </div>
       </div>
 
-      {view === "active" && inactive > 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {inactive} {inactive === 1 ? "deal" : "deals"} hidden (passed, bought
-          or doesn&apos;t stack).{" "}
-          <Button
-            variant="link"
-            size="sm"
-            className="h-auto px-0"
-            onClick={() => setView("all")}
-          >
-            Show all
-          </Button>
-        </p>
-      ) : null}
-
       {shown.length === 0 ? (
         <p className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
           {query.trim()
             ? "No deals match your search."
             : view === "archived"
               ? "Nothing archived. Archive a deal from its menu to hide it from your deals."
-              : view === "active"
-                ? "No active deals. Switch to All to see the rest."
-                : "No deals here."}
+              : "No deals yet. Tap + to analyse a property."}
         </p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

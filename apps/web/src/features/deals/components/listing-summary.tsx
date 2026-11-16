@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/format/date"
 import { formatMoney } from "@/lib/format/money"
 import { PROPERTY_TYPE_LABELS, TENURE_LABELS } from "../schemas"
 import type { Deal } from "../types"
+import { DealMap } from "./deal-map"
 
 /** Compact listing context above the deal's analysis, using saved listing data. */
 export function ListingSummary({ deal }: { deal: Deal }) {
@@ -20,6 +21,12 @@ export function ListingSummary({ deal }: { deal: Deal }) {
   ]
   // Only Rightmove imports carry listing photos; manual entries never do.
   const imported = Boolean(deal.listingUrl && photos.length)
+  const meta = [
+    imported ? `Imported from Rightmove ${formatDate(deal.createdAt)}` : null,
+    deal.agent,
+    deal.listedAt ? `Listed ${formatDate(deal.listedAt)}` : null,
+    photos.length ? `${photos.length} photos` : null,
+  ].filter(Boolean)
   const facts = [
     deal.propertyType ? PROPERTY_TYPE_LABELS[deal.propertyType] : null,
     deal.beds !== null ? `${deal.beds} bedrooms` : null,
@@ -92,18 +99,17 @@ export function ListingSummary({ deal }: { deal: Deal }) {
             {deal.keyFeatures.slice(0, 3).join(" · ")}
           </p>
         ) : null}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          {imported ? (
-            <span>Imported from Rightmove {formatDate(deal.createdAt)}</span>
+        {deal.lat !== null && deal.lng !== null ? (
+          <DealMap lat={deal.lat} lng={deal.lng} address={deal.addressLine} />
+        ) : null}
+        {/* One sentence that wraps naturally; the link gets its own line on phones. */}
+        <div className="flex flex-col gap-1.5 text-xs text-muted-foreground sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+          {meta.length ? (
+            <p className="text-pretty">{meta.join(" · ")}</p>
           ) : null}
-          {deal.agent ? <span>{deal.agent}</span> : null}
-          {deal.listedAt ? (
-            <span>Listed {formatDate(deal.listedAt)}</span>
-          ) : null}
-          {photos.length ? <span>{photos.length} photos</span> : null}
           <Link
             href={`/deals/${deal.id}/listing`}
-            className="ml-auto underline underline-offset-2 hover:text-foreground"
+            className="shrink-0 self-start underline underline-offset-2 hover:text-foreground sm:self-auto"
           >
             Full property details
           </Link>

@@ -9,6 +9,7 @@ import {
   ArrowLeftIcon,
   EllipsisVerticalIcon,
   ExternalLinkIcon,
+  LinkIcon,
   Trash2Icon,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -27,6 +28,7 @@ import { useDealBase } from "@/features/analysis/components/deal-provider"
 import { deleteDeal } from "../actions"
 import { PROPERTY_TYPE_LABELS } from "../schemas"
 import { toggleArchive } from "./archive"
+import { copyDealLink } from "./copy-link"
 import { StatusControl } from "./status-control"
 
 export function DealHeader() {
@@ -78,45 +80,56 @@ export function DealHeader() {
             </p>
           ) : null}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" size="icon" aria-label="Deal actions" />
-            }
-          >
-            <EllipsisVerticalIcon aria-hidden />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-48">
-            {deal.listingUrl ? (
+        {/* Same height as the ⋮ button (h-10 on phones, h-8 from md). */}
+        <div className="flex shrink-0 items-center gap-1">
+          <Button variant="outline" onClick={() => void copyDealLink(deal.id)}>
+            <LinkIcon aria-hidden />
+            Copy link
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" size="icon" aria-label="Deal actions" />
+              }
+            >
+              <EllipsisVerticalIcon aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              {deal.listingUrl ? (
+                <DropdownMenuItem
+                  render={
+                    <a
+                      href={deal.listingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    />
+                  }
+                >
+                  <ExternalLinkIcon aria-hidden />
+                  Open listing
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuItem
-                render={
-                  <a href={deal.listingUrl} target="_blank" rel="noreferrer" />
-                }
+                onClick={() => void toggleArchive(deal.id, !deal.archivedAt)}
               >
-                <ExternalLinkIcon aria-hidden />
-                Open listing
+                {deal.archivedAt ? (
+                  <ArchiveRestoreIcon aria-hidden />
+                ) : (
+                  <ArchiveIcon aria-hidden />
+                )}
+                {deal.archivedAt ? "Restore deal" : "Archive deal"}
               </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem
-              onClick={() => void toggleArchive(deal.id, !deal.archivedAt)}
-            >
-              {deal.archivedAt ? (
-                <ArchiveRestoreIcon aria-hidden />
-              ) : (
-                <ArchiveIcon aria-hidden />
-              )}
-              {deal.archivedAt ? "Restore deal" : "Archive deal"}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => setConfirm(true)}
-            >
-              <Trash2Icon aria-hidden />
-              Delete deal
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => setConfirm(true)}
+              >
+                <Trash2Icon aria-hidden />
+                Delete deal
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <StatusControl dealId={deal.id} status={deal.status} />
       <ConfirmDialog

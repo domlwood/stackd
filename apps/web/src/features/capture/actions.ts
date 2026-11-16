@@ -5,6 +5,7 @@ import { z } from "zod"
 
 import { requireSession } from "@/lib/auth/session"
 import { serverEnv } from "@/lib/env"
+import { geocodePostcode } from "@/features/deals/geocode"
 import { getNewDealOptions, type NewDealOptions } from "./options"
 import { fromDbError, fromZodError, type ActionResult } from "@/lib/errors"
 import { nearestPostcode } from "@/lib/ingest/postcodes"
@@ -238,6 +239,7 @@ export async function createDealManually(
   const supabase = await createSupabaseServerClient()
   const d = details.data
   const ref = d.listingUrl ? parseRightmoveUrl(d.listingUrl) : null
+  const coords = await geocodePostcode(d.postcode)
   const { data: deal, error } = await supabase
     .from("deal")
     .insert({
@@ -255,6 +257,8 @@ export async function createDealManually(
       listing_provider_id: ref?.propertyId ?? null,
       agent: d.agent || null,
       description: d.description || null,
+      lat: coords?.lat ?? null,
+      lng: coords?.lng ?? null,
     })
     .select("id")
     .single()

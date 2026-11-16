@@ -8,6 +8,7 @@ import {
   CircleAlertIcon,
   EllipsisVerticalIcon,
   HouseIcon,
+  LinkIcon,
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
@@ -28,6 +29,7 @@ import { formatMoney } from "@/lib/format/money"
 import type { PortfolioDeal } from "../portfolio"
 import { DEAL_STATUSES, DEAL_STATUS_LABELS, type DealStatus } from "../schemas"
 import { toggleArchive } from "./archive"
+import { copyDealLink } from "./copy-link"
 
 /**
  * DealCard — deal grid card: photo, address, status, price, verdict, profit, money left in or cash needed, affordability.
@@ -145,6 +147,10 @@ export function DealCard({
               ))}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => void copyDealLink(deal.id)}>
+              <LinkIcon aria-hidden />
+              Copy link
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => void toggleArchive(deal.id, !deal.archivedAt)}
             >

@@ -26,8 +26,8 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10)
   await expect(page.getByText("LS6 1AB")).toBeVisible()
 
-  // A new deal has no refurb or end value yet: it shows as "Needs details",
-  // which the default Deals view keeps (it only hides "Doesn't stack").
+  // A new deal has no refurb or end value yet, so it shows as "Needs details"
+  // in the default All view.
   await page.goto("/")
   await expect(
     page

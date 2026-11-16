@@ -14,6 +14,7 @@ import {
 import { inputDef, refurbItemCostKey } from "@/lib/inputs/registry"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import type { Json } from "@/lib/supabase/database.types"
+import { geocodePostcode } from "./geocode"
 import {
   dealDetailsSchema,
   ESTIMATE_WEIGHTS,
@@ -56,10 +57,12 @@ export async function createDeal(
   if (!parsed.success) return fromZodError(parsed.error)
   const session = await requireSession()
   const supabase = await createSupabaseServerClient()
+  const coords = await geocodePostcode(parsed.data.postcode)
   const { data, error } = await supabase
     .from("deal")
     .insert({
       ...detailsToRow(parsed.data),
+      ...(coords ?? {}),
       workspace_id: session.workspaceId,
       status: "active",
     })
@@ -80,9 +83,25 @@ export async function updateDealDetails(
   if (!parsed.success) return fromZodError(parsed.error)
   await requireSession()
   const supabase = await createSupabaseServerClient()
+  // Re-pin the map only when the postcode changes (or there's no pin yet):
+  // a listing's own coordinates are more precise than a postcode's centre.
+  const { data: current } = await supabase
+    .from("deal")
+    .select("postcode, lat, lng")
+    .eq("id", id.data)
+    .maybeSingle()
+  const postcodeChanged =
+    (current?.postcode ?? "").replace(/\s+/g, "").toUpperCase() !==
+    (parsed.data.postcode ?? "").replace(/\s+/g, "").toUpperCase()
+  const repin = postcodeChanged || current?.lat == null || current?.lng == null
+  const coords = repin ? await geocodePostcode(parsed.data.postcode) : null
   const { error } = await supabase
     .from("deal")
-    .update(detailsToRow(parsed.data))
+    .update({
+      ...detailsToRow(parsed.data),
+      // Postcode changed but not found: drop the stale pin rather than mislead.
+      ...(repin ? { lat: coords?.lat ?? null, lng: coords?.lng ?? null } : {}),
+    })
     .eq("id", id.data)
   if (error) return fromDbError(error)
   revalidateDeal(id.data)
