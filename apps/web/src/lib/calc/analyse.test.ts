@@ -238,6 +238,17 @@ describe("keep edge cases", () => {
     expect(a.verdict.reasons.join(" ")).not.toMatch(/let isn't part/)
   })
 
+  it("live in & sell names the exit 'Sale' in the verdict", () => {
+    const a = analyseCore(
+      { ...INPUTS, plan: { strategy: "live_in_sell" } },
+      { ...CTX, purchaseProduct: RESI }
+    )
+    expect(a.verdict.criteria.map((c) => c.label)).toContainEqual(
+      expect.stringMatching(/^Sale profit ≥ /)
+    )
+    expect(a.verdict.criteria.some((c) => /Flip/.test(c.label))).toBe(false)
+  })
+
   it("flipping with first-time buyer terms keeps the owner-occupier warning", () => {
     const a = analyseCore(
       {

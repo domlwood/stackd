@@ -23,10 +23,13 @@ export function SiteHeader({
   user: { name: string; email: string }
 }) {
   const pathname = usePathname()
+  // Pages reached from the + button or the profile menu, not the nav.
+  const OFF_NAV_TITLES: Record<string, string> = {
+    "/deals/new": "Analyse a property",
+    "/settings": "Settings",
+  }
   const title =
-    pathname === "/deals/new"
-      ? "Analyse a property"
-      : (activeNavItem(pathname)?.title ?? APP_NAME)
+    OFF_NAV_TITLES[pathname] ?? activeNavItem(pathname)?.title ?? APP_NAME
 
   return (
     <header className="sticky top-0 z-10 box-content flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur transition-[width,height] ease-linear supports-backdrop-filter:bg-background/80">

@@ -1,6 +1,12 @@
 "use client"
 
-import { CircleAlertIcon, CircleCheckIcon, InfinityIcon } from "lucide-react"
+import Link from "next/link"
+import {
+  CircleAlertIcon,
+  CircleCheckIcon,
+  CircleXIcon,
+  InfinityIcon,
+} from "lucide-react"
 
 import { Card } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
@@ -66,6 +72,38 @@ export function MetricStrip() {
             {verdict.reasons[0]}
           </p>
         </div>
+        {/* The rubric behind the verdict, in full (placeholder numbers have none). */}
+        {verdict.level !== "needs_details" ? (
+          <div className="flex flex-col gap-1.5">
+            <ul aria-label="Your buy box" className="flex flex-col gap-1">
+              {verdict.criteria.map((c) => (
+                <li
+                  key={c.key}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                >
+                  {c.pass ? (
+                    <CircleCheckIcon
+                      className="size-3.5 shrink-0 text-positive-foreground"
+                      aria-label="Meets"
+                    />
+                  ) : (
+                    <CircleXIcon
+                      className="size-3.5 shrink-0 text-negative-foreground"
+                      aria-label="Misses"
+                    />
+                  )}
+                  {c.label}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/settings"
+              className="self-start text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              Change your buy box
+            </Link>
+          </div>
+        ) : null}
         <div className="grid grid-cols-2 gap-3">
           <Metric
             label="Total cash required"

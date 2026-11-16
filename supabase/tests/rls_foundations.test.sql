@@ -1,7 +1,7 @@
 -- Run with: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(11);
 
 -- Fixtures (as postgres / owner)
 insert into auth.users (id, email, raw_user_meta_data)
@@ -14,7 +14,20 @@ insert into public.workspace (id, name) values ('10000000-0000-0000-0000-0000000
 insert into public.workspace_member (workspace_id, user_id) values
   ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-00000000000a'),
   ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-00000000000b');
-insert into public.workspace_settings (workspace_id) values ('10000000-0000-0000-0000-000000000001');
+-- A trigger creates the settings row with the workspace; this is a no-op now.
+insert into public.workspace_settings (workspace_id) values ('10000000-0000-0000-0000-000000000001')
+on conflict (workspace_id) do nothing;
+
+select is(
+  (select count(*)::int from public.workspace_settings where workspace_id = '10000000-0000-0000-0000-000000000001'),
+  1,
+  'a new workspace gets a settings row automatically'
+);
+select is(
+  (select array_agg(type order by type) from public.finance_product where workspace_id = '10000000-0000-0000-0000-000000000001'),
+  array['btl', 'residential'],
+  'a new workspace starts with placeholder residential and buy-to-let mortgages'
+);
 
 select is(
   (select display_name from public.profile where id = '00000000-0000-0000-0000-00000000000a'),

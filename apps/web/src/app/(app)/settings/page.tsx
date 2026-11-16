@@ -1,16 +1,16 @@
 import type { Metadata } from "next"
-import { Settings2Icon } from "lucide-react"
 
-import { PagePlaceholder } from "@/components/blocks/page-placeholder"
+import { SettingsForm } from "@/features/settings/components/settings-form"
+import { getSettings } from "@/features/workspace/queries"
 
 export const metadata: Metadata = { title: "Settings" }
 
-export default function SettingsPage() {
+/** Reached from the profile menu. Shared by everyone in the workspace. */
+export default async function SettingsPage() {
+  const settings = await getSettings()
   return (
-    <PagePlaceholder
-      icon={Settings2Icon}
-      title="Settings"
-      description="Your buy box, default assumptions and tax rules will live here."
-    />
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+      <SettingsForm initial={settings} />
+    </div>
   )
 }

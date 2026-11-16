@@ -1,7 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import { useTransition } from "react"
-import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react"
+import { ChevronsUpDownIcon, LogOutIcon, Settings2Icon } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import {
@@ -79,6 +80,10 @@ export function NavUser({ name, email }: { name: string; email: string }) {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link href="/settings" />}>
+              <Settings2Icon />
+              Settings
+            </DropdownMenuItem>
             <ThemeMenuItem />
             <DropdownMenuSeparator />
             <DropdownMenuItem

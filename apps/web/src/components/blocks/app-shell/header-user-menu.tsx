@@ -1,7 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import { useTransition } from "react"
-import { LogOutIcon } from "lucide-react"
+import { LogOutIcon, Settings2Icon } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
@@ -58,6 +59,10 @@ export function HeaderUserMenu({
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href="/settings" />}>
+          <Settings2Icon />
+          Settings
+        </DropdownMenuItem>
         <ThemeMenuItem />
         <DropdownMenuSeparator />
         <DropdownMenuItem

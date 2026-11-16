@@ -47,7 +47,9 @@ function atMost(value: number, threshold: number): Ratio {
 export function verdict(
   flip: FlipResult,
   keep: KeepResult,
-  buyBox: BuyBox
+  buyBox: BuyBox,
+  /** What the selling exit is called in this plan ("Sale" when you live in it first). */
+  saleName: "Flip" | "Sale" = "Flip"
 ): Verdict {
   const money = (p: number) => `£${Math.round(p / 100).toLocaleString("en-GB")}`
   const criteria: Criterion[] = [
@@ -57,7 +59,7 @@ export function verdict(
           {
             exit: "flip" as const,
             key: "flip.roi",
-            label: `Flip ROI ≥ ${+(buyBox.minFlipRoi * 100).toFixed(1)}%`,
+            label: `${saleName} ROI ≥ ${+(buyBox.minFlipRoi * 100).toFixed(1)}%`,
             pass: flip.roi >= buyBox.minFlipRoi,
             shortfall: atLeast(flip.roi, buyBox.minFlipRoi),
           },
@@ -66,7 +68,7 @@ export function verdict(
     {
       exit: "flip",
       key: "flip.profit",
-      label: `Flip profit ≥ ${money(buyBox.minFlipProfitPence)}`,
+      label: `${saleName} profit ≥ ${money(buyBox.minFlipProfitPence)}`,
       pass: flip.profitPence >= buyBox.minFlipProfitPence,
       shortfall: atLeast(flip.profitPence, buyBox.minFlipProfitPence),
     },
@@ -119,7 +121,7 @@ export function verdict(
   const reasons =
     level === "stacks"
       ? passingExits.map(
-          (exit) => `${exit === "flip" ? "Flip" : "Keep"} meets your buy box`
+          (exit) => `${exit === "flip" ? saleName : "Keep"} meets your buy box`
         )
       : criteria.filter((c) => !c.pass).map((c) => `Misses: ${c.label}`)
   if (!keep.available && !keep.notInPlan) reasons.push(keep.reason)

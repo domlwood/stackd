@@ -25,7 +25,12 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 }
 
 /** App sidebar, adapted from shadcn `sidebar-07` (collapses to icons; sheet on mobile). */
-export function AppSidebar({ user, workspaceName, ...props }: AppSidebarProps) {
+export function AppSidebar({
+  user,
+  // No longer shown under the wordmark; kept out of the DOM props.
+  workspaceName: _workspaceName,
+  ...props
+}: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -38,7 +43,7 @@ export function AppSidebar({ user, workspaceName, ...props }: AppSidebarProps) {
             >
               {/* Symbol only when collapsed; the wordmark sits beside it. */}
               <div className="flex aspect-square size-8 items-center justify-center">
-                <DealframeMark className="size-6" />
+                <DealframeMark className="size-8" />
               </div>
               <div className="grid flex-1 gap-1 text-left leading-tight">
                 <span className="truncate text-[1.0625rem] leading-none font-semibold tracking-[-0.015em]">

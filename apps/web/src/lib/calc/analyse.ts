@@ -295,7 +295,12 @@ export function analyseCore(
       label: "Total cash required",
     },
     affordability,
-    verdict: verdict(flip, keep, ctx.buyBox),
+    verdict: verdict(
+      flip,
+      keep,
+      ctx.buyBox,
+      inputs.plan.strategy === "live_in_sell" ? "Sale" : "Flip"
+    ),
     warnings,
   }
 }
