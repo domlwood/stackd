@@ -1,8 +1,11 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import Link from "next/link"
+import { PlusIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
+import { buttonVariants } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
@@ -10,11 +13,10 @@ import { APP_NAME } from "@/lib/app"
 
 import { HeaderUserMenu } from "./header-user-menu"
 import { activeNavItem } from "./nav-items"
-import { ThemeToggle } from "./theme-toggle"
 
 /**
  * Top bar, adapted from shadcn `dashboard-01` SiteHeader.
- * `actions` is the slot for the paste bar (Phase 5).
+ * `actions` contains the desktop Add deal link.
  */
 export function SiteHeader({
   actions,
@@ -37,8 +39,6 @@ export function SiteHeader({
         />
         <h1 className="text-base font-medium">{title}</h1>
         <div className="ml-auto flex items-center gap-2">
-          {actions}
-          <ThemeToggle />
           <div className="md:hidden">
             <HeaderUserMenu name={user.name} email={user.email} />
           </div>

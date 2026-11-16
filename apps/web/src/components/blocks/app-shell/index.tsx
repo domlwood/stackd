@@ -6,7 +6,7 @@
  * Props:
  *  - user: { name, email } shown in the sidebar footer menu
  *  - workspaceName: shown under the logo
- *  - headerActions?: ReactNode rendered at the right of the header (paste bar)
+ *  - headerActions?: ReactNode rendered at the right of the header
  *  - children: page content (rendered in <main id="main">)
  *
  * Usage:
@@ -17,7 +17,6 @@ import type { CSSProperties, ReactNode } from "react"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 
 import { AppSidebar } from "./app-sidebar"
-import { CommandPalette } from "./command-palette"
 import { MobileTabBar } from "./mobile-tab-bar"
 import { SiteHeader } from "./site-header"
 
@@ -48,11 +47,11 @@ export function AppShell({
       </a>
       <AppSidebar user={user} workspaceName={workspaceName} />
       <SidebarInset>
-        <SiteHeader actions={headerActions ?? <CommandPalette />} user={user} />
+        <SiteHeader actions={headerActions} user={user} />
         <main
           id="main"
           tabIndex={-1}
-          className="flex flex-1 flex-col gap-4 p-4 pb-[calc(5rem+env(safe-area-inset-bottom))] outline-none md:p-6 md:pb-6"
+          className="flex flex-1 flex-col gap-4 p-4 pb-[calc(9rem+env(safe-area-inset-bottom))] outline-none md:p-6 md:pb-6"
         >
           {children}
         </main>

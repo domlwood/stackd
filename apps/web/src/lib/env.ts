@@ -10,15 +10,19 @@ const publicSchema = z.object({
 })
 
 const serverSchema = publicSchema.extend({
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   INGEST_RIGHTMOVE_ENABLED: z
     .enum(["true", "false"])
     .default("true")
     .transform((value) => value === "true"),
 })
 
+const adminSchema = publicSchema.extend({
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+})
+
 export type PublicEnv = z.infer<typeof publicSchema>
 export type ServerEnv = z.infer<typeof serverSchema>
+export type AdminEnv = z.infer<typeof adminSchema>
 
 export class EnvError extends Error {
   override name = "EnvError"
@@ -61,3 +65,16 @@ export const publicEnv = (): PublicEnv =>
   })
 
 export const serverEnv = (): ServerEnv => parseServerEnv(process.env)
+
+/** Only local account/seed scripts need the privileged service-role key. */
+export function parseAdminEnv(
+  source: Record<string, string | undefined>
+): AdminEnv {
+  const result = adminSchema.safeParse(source)
+  if (!result.success) {
+    throw new EnvError(
+      `Invalid admin environment variables:\n${format(result.error.issues)}\nSee apps/web/.env.example.`
+    )
+  }
+  return result.data
+}

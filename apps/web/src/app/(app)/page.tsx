@@ -10,10 +10,6 @@ export default async function PipelinePage() {
   const portfolio = await loadPortfolio()
   return (
     <div className="flex flex-col gap-6">
-      <BuyingPowerSummary
-        power={portfolio.buyingPower}
-        potCount={portfolio.pots.length}
-      />
       <PipelineView deals={portfolio.deals} />
     </div>
   )

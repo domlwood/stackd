@@ -40,7 +40,7 @@ const COLUMNS: ColumnDef<PortfolioDeal>[] = [
     accessorKey: "addressLine",
     cell: ({ row }) => (
       <Link
-        href={`/deals/${row.original.id}` as Route}
+        href={`/deals/${row.original.id}#top` as Route}
         className="font-medium hover:underline"
       >
         {row.original.addressLine}

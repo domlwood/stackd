@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 
-import { parseServerEnv } from "@/lib/env"
+import { parseAdminEnv } from "@/lib/env"
 import type { Database } from "./database.types"
 
 /**
@@ -10,7 +10,7 @@ import type { Database } from "./database.types"
 export function createSupabaseAdminClient(
   source: Record<string, string | undefined> = process.env
 ) {
-  const env = parseServerEnv(source)
+  const env = parseAdminEnv(source)
   return createClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.SUPABASE_SERVICE_ROLE_KEY,

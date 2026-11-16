@@ -23,9 +23,20 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
   await page.getByLabel("Asking price").fill("150k")
   await page.getByRole("button", { name: "Create deal" }).click()
   await expect(page.getByRole("heading", { name: address })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10)
   await expect(page.getByText("LS6 1AB")).toBeVisible()
 
-  // The two numbers we ask for: refurb cost and end value (inline, saved on Enter).
+  // Both pipeline layouts must open above the shared summary on phones too.
+  for (const layout of ["Board", "Table"]) {
+    await page.goto("/")
+    await page.getByLabel(layout, { exact: true }).click()
+    await page.getByRole("link", { name: address }).first().click()
+    await expect(page).toHaveURL(/\/deals\/[^/]+#top$/)
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10)
+    await expect(page.getByRole("heading", { name: address })).toBeInViewport()
+  }
+
+  // Refurb cost and end value are inline and saved on Enter.
   await page.getByLabel("Refurb cost").fill("25000")
   await page.getByLabel("Refurb cost").press("Enter")
   await page.getByLabel("End value").fill("210000")

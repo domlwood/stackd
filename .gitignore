@@ -34,6 +34,10 @@ dist-ssr
 
 # next / testing
 .next
+.open-next
+.wrangler
+.dev.vars*
+!.dev.vars.example
 next-env.d.ts
 coverage
 playwright-report

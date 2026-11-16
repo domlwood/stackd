@@ -3,7 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "postinstall": "node scripts/patch-next-themes.mjs",
     "build": "turbo build",
+    "cf:build": "npm run cf:build -w web",
+    "cf:deploy": "npm run cf:deploy -w web",
+    "cf:preview": "npm run cf:preview -w web",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write .",

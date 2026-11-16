@@ -1,4 +1,4 @@
-import { EnvError, parsePublicEnv, parseServerEnv } from "./env"
+import { EnvError, parseAdminEnv, parsePublicEnv, parseServerEnv } from "./env"
 
 const valid = {
   NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co",
@@ -7,6 +7,18 @@ const valid = {
 }
 
 describe("env", () => {
+  it("runs the deployed app without a service-role key", () => {
+    const runtime = { ...valid, SUPABASE_SERVICE_ROLE_KEY: undefined }
+    expect(parseServerEnv(runtime).INGEST_RIGHTMOVE_ENABLED).toBe(true)
+    expect(parseServerEnv(runtime)).not.toHaveProperty(
+      "SUPABASE_SERVICE_ROLE_KEY"
+    )
+    expect(() => parseAdminEnv(runtime)).toThrow(/SUPABASE_SERVICE_ROLE_KEY/)
+  })
+
+  it("still requires and reads the service-role key for admin scripts", () => {
+    expect(parseAdminEnv(valid).SUPABASE_SERVICE_ROLE_KEY).toBe("service")
+  })
   it("parses valid public env", () => {
     expect(parsePublicEnv(valid).NEXT_PUBLIC_SUPABASE_URL).toBe(
       valid.NEXT_PUBLIC_SUPABASE_URL

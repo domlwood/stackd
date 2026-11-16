@@ -109,9 +109,11 @@ export function NewDealFlow({
           result.message ??
             (result.existing
               ? "Opened the existing deal"
-              : "Analysed. Add your refurb cost and end value.")
+              : "Analysed. Check your offer price, refurb cost and end value.")
         )
-        router.push(`/deals/${result.dealId}` as Route)
+        // The page segment starts below the shared deal summary. Explicitly
+        // target the document top instead of Next's automatic segment scroll.
+        router.push(`/deals/${result.dealId}#top` as Route)
         return
       }
       setFallback({ message: result.message, prefill: result.prefill })
@@ -208,9 +210,9 @@ export function NewDealFlow({
                 })
                 if (!result.ok) return result
                 toast.success(
-                  "Deal created. Add your refurb cost and end value."
+                  "Deal created. Check your offer price, refurb cost and end value."
                 )
-                router.push(`/deals/${result.data.id}` as Route)
+                router.push(`/deals/${result.data.id}#top` as Route)
                 return { ok: true }
               }}
             />

@@ -85,18 +85,6 @@ export function PipelineView({ deals }: { deals: PortfolioDeal[] }) {
       list.map((d) => (d.id === m.id ? { ...d, status: m.status } : d))
   )
 
-  const areas = useMemo(() => {
-    const set = new Set(
-      deals
-        .map((d) => postcodeDistrict(d.postcode))
-        .filter((a): a is string => Boolean(a))
-    )
-    return Object.fromEntries([
-      [ALL, "All areas"],
-      ...[...set].sort().map((a) => [a, a]),
-    ]) as Record<string, string>
-  }, [deals])
-
   const filtered = optimistic.filter(
     (d) =>
       (verdict === ALL || d.summary.verdict === verdict) &&
@@ -153,14 +141,6 @@ export function PipelineView({ deals }: { deals: PortfolioDeal[] }) {
             <span className="max-sm:sr-only">Table</span>
           </ToggleGroupItem>
         </ToggleGroup>
-        <Button
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/deals/new" />}
-        >
-          <PlusIcon aria-hidden />
-          New deal
-        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -180,14 +160,6 @@ export function PipelineView({ deals }: { deals: PortfolioDeal[] }) {
             value={verdict}
             onValueChange={setVerdict}
             options={{ [ALL]: "All verdicts", ...VERDICT_LABELS }}
-          />
-        </div>
-        <div className="sm:w-40">
-          <OptionSelect
-            id="filter-area"
-            value={area}
-            onValueChange={setArea}
-            options={areas}
           />
         </div>
       </div>
