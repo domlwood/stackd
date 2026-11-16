@@ -39,7 +39,7 @@ describe("capture navigation", () => {
       })
       fireEvent.click(screen.getByRole("button", { name: "Import property" }))
       await waitFor(() =>
-        expect(push).toHaveBeenCalledWith("/deals/example-deal#top")
+        expect(push).toHaveBeenCalledWith("/deals/example-deal")
       )
     }
   )
@@ -60,8 +60,6 @@ describe("capture navigation", () => {
       target: { value: "LS6 1AB" },
     })
     fireEvent.click(screen.getByRole("button", { name: "Create deal" }))
-    await waitFor(() =>
-      expect(push).toHaveBeenCalledWith("/deals/manual-deal#top")
-    )
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/deals/manual-deal"))
   })
 })

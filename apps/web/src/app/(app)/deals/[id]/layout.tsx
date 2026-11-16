@@ -12,6 +12,7 @@ import { KeyNumbers } from "@/features/analysis/components/key-numbers"
 import { MetricStrip } from "@/features/analysis/components/metric-strip"
 import { StrategyPicker } from "@/features/analysis/components/strategy-picker"
 import { DealHeader } from "@/features/deals/components/deal-header"
+import { DealScrollReset } from "@/features/deals/components/deal-scroll-reset"
 import { DealTabs } from "@/features/deals/components/deal-tabs"
 import { ListingSummary } from "@/features/deals/components/listing-summary"
 import { getDealWorkspace } from "@/features/deals/queries"
@@ -32,6 +33,7 @@ export default async function DealLayout({
   const data = await getDealWorkspace(id)
   return (
     <DealProvider data={data}>
+      <DealScrollReset dealId={id} />
       {/* Phones: one column. xl: assumptions left, sticky summary right. */}
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 xl:max-w-6xl">
         <DealHeader />

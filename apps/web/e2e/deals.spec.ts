@@ -44,7 +44,7 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
     )
   ).toBe(true)
   await page.getByRole("link", { name: address }).first().click()
-  await expect(page).toHaveURL(/\/deals\/[^/]+#top$/)
+  await expect(page).toHaveURL(/\/deals\/[^/#]+$/)
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10)
   await expect(page.getByRole("heading", { name: address })).toBeInViewport()
 
