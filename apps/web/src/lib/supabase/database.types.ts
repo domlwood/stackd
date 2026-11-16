@@ -71,6 +71,185 @@ export type Database = {
           },
         ]
       }
+      deal: {
+        Row: {
+          address_line: string
+          agent: string | null
+          asking_price_pence: number | null
+          baths: number | null
+          beds: number | null
+          comp_search: Json
+          cover_photo_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          floor_area_sqm: number | null
+          id: string
+          key_features: string[]
+          lat: number | null
+          listed_at: string | null
+          listing_provider_id: string | null
+          listing_url: string | null
+          lng: number | null
+          passed_reason: string | null
+          photo_urls: string[]
+          postcode: string | null
+          property_type: string | null
+          status: string
+          status_changed_at: string
+          tenure: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          address_line: string
+          agent?: string | null
+          asking_price_pence?: number | null
+          baths?: number | null
+          beds?: number | null
+          comp_search?: Json
+          cover_photo_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          floor_area_sqm?: number | null
+          id?: string
+          key_features?: string[]
+          lat?: number | null
+          listed_at?: string | null
+          listing_provider_id?: string | null
+          listing_url?: string | null
+          lng?: number | null
+          passed_reason?: string | null
+          photo_urls?: string[]
+          postcode?: string | null
+          property_type?: string | null
+          status?: string
+          status_changed_at?: string
+          tenure?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          address_line?: string
+          agent?: string | null
+          asking_price_pence?: number | null
+          baths?: number | null
+          beds?: number | null
+          comp_search?: Json
+          cover_photo_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          floor_area_sqm?: number | null
+          id?: string
+          key_features?: string[]
+          lat?: number | null
+          listed_at?: string | null
+          listing_provider_id?: string | null
+          listing_url?: string | null
+          lng?: number | null
+          passed_reason?: string | null
+          photo_urls?: string[]
+          postcode?: string | null
+          property_type?: string | null
+          status?: string
+          status_changed_at?: string
+          tenure?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_input: {
+        Row: {
+          deal_id: string
+          id: string
+          key: string
+          note: string | null
+          scope: string
+          set_at: string
+          set_by: string | null
+          source_text: string | null
+          source_url: string | null
+          user_id: string | null
+          value: Json
+          workspace_id: string
+        }
+        Insert: {
+          deal_id: string
+          id?: string
+          key: string
+          note?: string | null
+          scope: string
+          set_at?: string
+          set_by?: string | null
+          source_text?: string | null
+          source_url?: string | null
+          user_id?: string | null
+          value: Json
+          workspace_id: string
+        }
+        Update: {
+          deal_id?: string
+          id?: string
+          key?: string
+          note?: string | null
+          scope?: string
+          set_at?: string
+          set_by?: string | null
+          source_text?: string | null
+          source_url?: string | null
+          user_id?: string | null
+          value?: Json
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_input_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_input_set_by_fkey"
+            columns: ["set_by"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_input_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_input_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       erc_band: {
         Row: {
           from_month: number
@@ -281,6 +460,73 @@ export type Database = {
           },
         ]
       }
+      listing_snapshot: {
+        Row: {
+          created_by: string | null
+          deal_id: string | null
+          error: string | null
+          fetched_at: string
+          id: string
+          parsed: Json
+          provider: string
+          provider_ref: string | null
+          raw_path: string | null
+          source_url: string
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          created_by?: string | null
+          deal_id?: string | null
+          error?: string | null
+          fetched_at?: string
+          id?: string
+          parsed?: Json
+          provider: string
+          provider_ref?: string | null
+          raw_path?: string | null
+          source_url: string
+          status: string
+          workspace_id: string
+        }
+        Update: {
+          created_by?: string | null
+          deal_id?: string | null
+          error?: string | null
+          fetched_at?: string
+          id?: string
+          parsed?: Json
+          provider?: string
+          provider_ref?: string | null
+          raw_path?: string | null
+          source_url?: string
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_snapshot_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_snapshot_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_snapshot_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile: {
         Row: {
           created_at: string
@@ -301,6 +547,124 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      refurb_item: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          description: string | null
+          id: string
+          ordinal: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          description?: string | null
+          id?: string
+          ordinal?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          description?: string | null
+          id?: string
+          ordinal?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refurb_item_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refurb_item_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refurb_item_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_rule_set: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          effective_from: string
+          effective_to: string | null
+          id: string
+          jurisdiction: string
+          kind: string
+          note: string | null
+          source_url: string | null
+          verified_at: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data: Json
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction?: string
+          kind: string
+          note?: string | null
+          source_url?: string | null
+          verified_at?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          jurisdiction?: string
+          kind?: string
+          note?: string | null
+          source_url?: string | null
+          verified_at?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_rule_set_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_rule_set_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace: {
         Row: {

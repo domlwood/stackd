@@ -1,0 +1,5 @@
+# Copy to .dev.vars only when previewing the built Worker locally.
+# Use the same public values as your Next.js .env file. No admin/seed credentials.
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
+INGEST_RIGHTMOVE_ENABLED=true

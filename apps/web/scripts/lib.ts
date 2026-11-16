@@ -40,7 +40,7 @@ export async function upsertUser(
   return data.user.id
 }
 
-async function findUserByEmail(
+export async function findUserByEmail(
   admin: Admin,
   email: string
 ): Promise<string | null> {

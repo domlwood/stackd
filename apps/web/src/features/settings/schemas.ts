@@ -6,7 +6,8 @@ const months = z.number().int().min(0).max(120)
 
 /** Buy box: thresholds that drive the deal verdict. */
 export const buyBoxSchema = z.object({
-  minFlipRoi: ratio.default(0.2),
+  /** 0 = no ROI test: the flip is judged on profit alone. */
+  minFlipRoi: ratio.default(0),
   minFlipProfitPence: pence.nonnegative().default(2_000_000),
   maxMoneyLeftInPence: pence.nonnegative().default(1_500_000),
   minMonthlyCashflowPence: pence.default(20_000),
@@ -15,17 +16,40 @@ export const buyBoxSchema = z.object({
 
 /** Default assumptions used to pre-fill new deals. */
 export const defaultsSchema = z.object({
+  buyer: z
+    .object({
+      firstTimeBuyer: z.boolean().default(true),
+      additionalProperty: z.boolean().default(false),
+      nonResident: z.boolean().default(false),
+      corporateRelief: z.boolean().default(true),
+    })
+    .prefault({}),
   purchase: z
     .object({
       legalPence: pence.nonnegative().default(180_000),
       surveyPence: pence.nonnegative().default(60_000),
-      brokerPence: pence.nonnegative().default(0),
+      sourcingPence: pence.nonnegative().default(0),
+      otherPence: pence.nonnegative().default(0),
+      monthsToComplete: months.default(3),
+    })
+    .prefault({}),
+  finance: z
+    .object({
+      purchaseLtv: ratio.default(0.9),
     })
     .prefault({}),
   refurb: z
     .object({
       contingency: ratio.default(0.1),
       months: months.default(3),
+      /** Quick-estimate rates in pence per sq ft, by condition. */
+      conditionRatesPencePerSqft: z
+        .object({
+          light: pence.nonnegative().default(2_500),
+          medium: pence.nonnegative().default(4_500),
+          heavy: pence.nonnegative().default(7_000),
+        })
+        .prefault({}),
     })
     .prefault({}),
   holding: z
@@ -33,6 +57,7 @@ export const defaultsSchema = z.object({
       councilTaxMonthlyPence: pence.nonnegative().default(15_000),
       utilitiesMonthlyPence: pence.nonnegative().default(10_000),
       insuranceMonthlyPence: pence.nonnegative().default(4_000),
+      otherMonthlyPence: pence.nonnegative().default(0),
     })
     .prefault({}),
   flip: z
@@ -41,7 +66,8 @@ export const defaultsSchema = z.object({
       agentFeeVat: z.boolean().default(true),
       saleLegalPence: pence.nonnegative().default(150_000),
       monthsToSell: months.default(4),
-      assumedIncomeTaxRate: ratio.default(0.4),
+      /** Other taxable income the flip profit stacks on (income tax / CGT estimates). */
+      otherIncomePence: pence.nonnegative().default(5_027_000),
     })
     .prefault({}),
   keep: z
@@ -51,6 +77,11 @@ export const defaultsSchema = z.object({
       voids: ratio.default(0.05),
       maintenance: ratio.default(0.05),
       insuranceMonthlyPence: pence.nonnegative().default(3_000),
+      /** Used to estimate rent from the end value until a rent figure is entered. */
+      grossYield: ratio.default(0.065),
+      groundRentServiceMonthlyPence: pence.nonnegative().default(0),
+      otherMonthlyPence: pence.nonnegative().default(0),
+      refinanceLegalPence: pence.nonnegative().default(100_000),
     })
     .prefault({}),
   comps: z

@@ -20,6 +20,8 @@ export default defineConfig([
   ...nextTs,
   globalIgnores([
     ".next/**",
+    ".open-next/**",
+    ".wrangler/**",
     "coverage/**",
     "playwright-report/**",
     "next-env.d.ts",

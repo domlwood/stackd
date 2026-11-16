@@ -3,7 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "postinstall": "node scripts/patch-next-themes.mjs",
     "build": "turbo build",
+    "cf:build": "npm run cf:build -w web",
+    "cf:deploy": "npm run cf:deploy -w web",
+    "cf:preview": "npm run cf:preview -w web",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write .",
@@ -15,7 +19,8 @@
     "db:types": "supabase gen types typescript --linked --schema public > apps/web/src/lib/supabase/database.types.ts",
     "db:push": "supabase db push",
     "db:seed": "npm run seed -w web",
-    "user:create": "npm run user:create -w web --"
+    "user:create": "npm run user:create -w web --",
+    "user:update": "npm run user:update -w web --"
   },
   "devDependencies": {
     "prettier": "^3.9.10",

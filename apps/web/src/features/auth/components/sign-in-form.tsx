@@ -34,7 +34,9 @@ export function SignInForm({ next }: { next?: string }) {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-xl">Sign in</CardTitle>
+        <CardTitle>
+          <h1 className="text-xl">Sign in</h1>
+        </CardTitle>
         <CardDescription>
           Invite only. Use the account you were given.
         </CardDescription>

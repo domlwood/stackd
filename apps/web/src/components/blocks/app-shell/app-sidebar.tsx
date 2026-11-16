@@ -31,7 +31,11 @@ export function AppSidebar({ user, workspaceName, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="pointer-events-none">
+            <SidebarMenuButton
+              size="lg"
+              className="pointer-events-none"
+              render={<div />}
+            >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <LayersIcon className="size-4" aria-hidden />
               </div>

@@ -21,6 +21,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 
 import { signOut } from "@/features/auth/actions"
+import { ThemeMenuItem } from "./theme-toggle"
 
 export function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -77,6 +78,8 @@ export function NavUser({ name, email }: { name: string; email: string }) {
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <ThemeMenuItem />
             <DropdownMenuSeparator />
             <DropdownMenuItem
               disabled={pending}

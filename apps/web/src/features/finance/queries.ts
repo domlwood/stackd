@@ -6,18 +6,13 @@ import { requireSession } from "@/lib/auth/session"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { getSettings } from "@/features/workspace/queries"
 import { rowToPot, rowToProduct } from "./mappers"
-import {
-  computeBuyingPower,
-  productStaleness,
-  type BuyingPower,
-  type Commitment,
-  type Staleness,
-} from "./rules"
+import { loadPortfolio } from "@/features/deals/portfolio"
+import { productStaleness, type BuyingPower, type Staleness } from "./rules"
 import type { FinanceProduct, FundPot } from "./schemas"
 
 export type ProductListItem = FinanceProduct & {
   staleness: Staleness
-  /** Deals that reference this product. Populated once deals exist (Phase 4). */
+  /** Deals that reference this product (Agreed view). */
   usedBy: { dealId: string; label: string }[]
 }
 
@@ -39,7 +34,10 @@ export const listFinanceProducts = cache(
   }: { includeArchived?: boolean } = {}): Promise<ProductListItem[]> => {
     const session = await requireSession()
     const supabase = await createSupabaseServerClient()
-    const settings = await getSettings()
+    const [settings, portfolio] = await Promise.all([
+      getSettings(),
+      loadPortfolio(),
+    ])
 
     let query = supabase
       .from("finance_product")
@@ -63,21 +61,13 @@ export const listFinanceProducts = cache(
           settings.staleAfterDays,
           now
         ),
-        usedBy: [],
+        usedBy: portfolio.usedBy[product.id] ?? [],
       }
     })
   }
 )
 
-/** Cash committed to deals in offer/accepted. Deals arrive in Phase 4; none yet. */
-async function listCommitments(): Promise<Commitment[]> {
-  return []
-}
-
-export const getBuyingPower = cache(async (): Promise<BuyingPower> => {
-  const [pots, commitments] = await Promise.all([
-    listFundPots(),
-    listCommitments(),
-  ])
-  return computeBuyingPower(pots, commitments)
-})
+/** Free buying power = pots − cash required by deals at offer/accepted (computed live). */
+export const getBuyingPower = cache(
+  async (): Promise<BuyingPower> => (await loadPortfolio()).buyingPower
+)

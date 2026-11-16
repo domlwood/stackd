@@ -17,6 +17,7 @@ import {
 
 import { signOut } from "@/features/auth/actions"
 import { initialsOf } from "./nav-user"
+import { ThemeMenuItem } from "./theme-toggle"
 
 /** Compact account menu for phones, where the sidebar footer isn't visible. */
 export function HeaderUserMenu({
@@ -56,6 +57,8 @@ export function HeaderUserMenu({
             </div>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <ThemeMenuItem />
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={pending}
