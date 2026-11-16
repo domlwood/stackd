@@ -84,6 +84,7 @@ export const TAX_MODE_LABELS: Record<TaxMode, string> = {
   income_tax: "Income tax + Class 4 NI (trading)",
   cgt: "Capital gains tax",
   corp_tax: "Corporation tax",
+  main_residence: "Main residence (Private Residence Relief)",
 }
 
 /** Estimated tax on a flip profit. Always an estimate: depends on the rest of your tax position. */
@@ -117,6 +118,8 @@ export function flipTax(
           unit: "pence",
         },
       ]
+    } else if (mode === "main_residence") {
+      taxPence = 0
     } else if (mode === "cgt") {
       taxPence = capitalGainsTax(
         profitPence,
@@ -137,7 +140,10 @@ export function flipTax(
       unit: "pence",
       formula: TAX_MODE_LABELS[mode],
       inputs: ["flip.taxMode", "flip.otherIncome"],
-      note: "Estimate only. Your actual liability depends on your full tax position; check with an accountant.",
+      note:
+        mode === "main_residence"
+          ? "No tax if it was genuinely your only or main home for the whole time you owned it. HMRC can treat buying to renovate and sell as trading (taxed as income), especially if you do it repeatedly; check with an accountant."
+          : "Estimate only. Your actual liability depends on your full tax position; check with an accountant.",
       children,
     },
   }

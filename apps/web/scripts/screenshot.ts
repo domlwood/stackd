@@ -41,7 +41,9 @@ async function main() {
       await page.getByRole("heading", { name: /Deals/ }).waitFor()
       await shot("pipeline")
       await page.goto(BASE + "/deals/new")
-      await page.getByRole("button", { name: "Analyse", exact: true }).waitFor()
+      await page
+        .getByRole("button", { name: "Import property", exact: true })
+        .waitFor()
       await shot("new-deal", false)
       await page.goto(BASE + "/")
 
@@ -63,25 +65,15 @@ async function main() {
           .click()
         await page.waitForTimeout(300)
         await shot("deal-expanded")
-        await page.getByRole("button", { name: /Exit B · Keep/ }).click()
-        await page.getByRole("button", { name: /Rent \(monthly\)/ }).click()
+        // Purchase finance is already open from the step above.
+        await page
+          .getByRole("button", { name: /Purchase LTV/ })
+          .first()
+          .click()
         await page.getByRole("dialog").waitFor()
         await page.waitForTimeout(400)
         await shot("input-sheet", false)
         await page.keyboard.press("Escape")
-        await page.goto(BASE + "/")
-        await page
-          .getByRole("radio", { name: "Table" })
-          .or(page.getByRole("button", { name: "Table" }))
-          .first()
-          .click()
-        await page.waitForTimeout(300)
-        await shot("pipeline-table")
-        await page
-          .getByRole("radio", { name: "Board" })
-          .or(page.getByRole("button", { name: "Board" }))
-          .first()
-          .click()
       }
       console.log(
         label,

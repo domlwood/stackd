@@ -34,7 +34,8 @@ export function rowToProduct(
     feeAddedToLoan: row.fee_added_to_loan,
     brokerFeePence: Number(row.broker_fee_pence),
     valuationFeePence: Number(row.valuation_fee_pence),
-    cashbackPence: Number(row.cashback_pence),
+    // ?? 0: tolerate a database that predates the cashback migration.
+    cashbackPence: Number(row.cashback_pence ?? 0),
     maxLtv: num(row.max_ltv),
     rate: num(row.rate),
     rateType: row.rate_type as FinanceProduct["rateType"],

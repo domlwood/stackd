@@ -8,7 +8,7 @@ import { APP_NAME } from "@/lib/app"
 
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
-  description: "Private BRR deal analyser: flip or keep.",
+  description: "See beyond the listing. Property deal analysis.",
   robots: { index: false, follow: false },
 }
 
@@ -17,8 +17,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#fafaf8" },
+    { media: "(prefers-color-scheme: dark)", color: "#17191c" },
   ],
 }
 

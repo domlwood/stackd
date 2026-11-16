@@ -187,13 +187,21 @@ export function analyseCore(
 
   const keepMonths = refinanceMonth(inputs.refurb.months, ctx.refiProduct)
   const keepInvested = cashInvested("keep", keepMonths, parts, inputs, finance)
-  const keep = analyseKeep({
-    inputs,
-    refi: ctx.refiProduct,
-    months: keepMonths,
-    redemption: redeemPurchaseFinance(finance, keepMonths),
-    cashInvested: keepInvested,
-  })
+  const keep: KeepResult =
+    inputs.plan.strategy === "brr"
+      ? analyseKeep({
+          inputs,
+          refi: ctx.refiProduct,
+          months: keepMonths,
+          redemption: redeemPurchaseFinance(finance, keepMonths),
+          cashInvested: keepInvested,
+        })
+      : {
+          available: false,
+          notInPlan: true,
+          reason:
+            "Keeping it as a let isn't part of this plan. Choose Flip or keep (BRR) to compare.",
+        }
 
   const cashRequired =
     keep.available && keepInvested.value > flipInvested.value
@@ -212,7 +220,7 @@ export function analyseCore(
         }
 
   const warnings: Warning[] = [...(keep.available ? keep.warnings : [])]
-  if (ctx.purchaseProduct?.type === "residential" && ctx.refiProduct) {
+  if (ctx.purchaseProduct?.type === "residential" && keep.available) {
     warnings.push({
       code: "residential_keep",
       message:
@@ -244,22 +252,33 @@ export function analyseCore(
       })
     }
   }
-  if (
+  const ownerOccupierTerms =
     sdlt.basis === "first_time_buyer" ||
     (ctx.purchaseProduct?.type === "residential" &&
       inputs.buyer.entity === "personal")
-  ) {
+  if (ownerOccupierTerms && inputs.plan.strategy !== "live_in_sell") {
     warnings.push({
       code: "owner_occupier_terms",
       message:
-        "First-time buyer relief and residential mortgages assume you'll live there. Selling or letting soon after buying can breach the mortgage terms or mean the relief must be repaid. Check with your broker and conveyancer before relying on either exit.",
-      inputs: ["buyer.firstTimeBuyer", "purchaseFinance.product"],
+        "First-time buyer relief and a residential mortgage are for a home you'll live in. Buying to flip or let instead isn't what either is for: you could breach the mortgage terms, and you can't claim the relief without intending to live there. Check with your broker and conveyancer.",
+      inputs: [
+        "plan.strategy",
+        "buyer.firstTimeBuyer",
+        "purchaseFinance.product",
+      ],
+    })
+  } else if (ownerOccupierTerms) {
+    warnings.push({
+      code: "live_in_terms",
+      message:
+        "This plan assumes it's genuinely your home: first-time buyer relief, the residential mortgage and the tax-free sale all depend on that. Mortgage terms vary on selling early; check yours before you commit.",
+      inputs: ["plan.strategy"],
     })
   }
   if (affordability && !affordability.affordable) {
     warnings.push({
       code: "unaffordable",
-      message: "This deal needs more cash than your free buying power.",
+      message: "This deal needs more cash than you have in your fund pots.",
     })
   }
 

@@ -9,7 +9,9 @@ import { cn } from "@workspace/ui/lib/utils"
 import { MoneyInput } from "@/components/blocks/numeric-inputs"
 import { formatMoney } from "@/lib/format/money"
 import { formatPercent } from "@/lib/format/percent"
+import { provenanceTag } from "../provenance"
 import { useDeal } from "./deal-provider"
+import { ProvenanceChip } from "./provenance-chip"
 
 /** Inline money field that saves on blur / Enter (optimistically). */
 function InlineMoney({
@@ -23,8 +25,17 @@ function InlineMoney({
   hint?: string
   needsAttention?: boolean
 }) {
-  const { built, setInput, openInput } = useDeal()
+  const { built, data, setInput, openInput } = useDeal()
   const current = (built.resolved.values[inputKey] as number | undefined) ?? 0
+  const tag = provenanceTag(
+    inputKey,
+    built.resolved.provenance[inputKey],
+    built.resolved.values,
+    {
+      askingPricePence: data.deal.askingPricePence,
+      refurbLineCount: data.refurbLines.length,
+    }
+  )
   const [draft, setDraft] = useState<number | null>(null)
   const id = `key-${inputKey}`
 
@@ -43,9 +54,12 @@ function InlineMoney({
 
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium">
-        {label}
-      </label>
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <label htmlFor={id} className="truncate text-sm font-medium">
+          {label}
+        </label>
+        {tag ? <ProvenanceChip tag={tag} /> : null}
+      </div>
       <div
         className={cn("rounded-lg", needsAttention && "ring-2 ring-warning/60")}
       >

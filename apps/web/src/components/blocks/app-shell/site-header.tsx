@@ -1,11 +1,8 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import Link from "next/link"
-import { PlusIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
-import { buttonVariants } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
@@ -26,7 +23,10 @@ export function SiteHeader({
   user: { name: string; email: string }
 }) {
   const pathname = usePathname()
-  const title = activeNavItem(pathname)?.title ?? APP_NAME
+  const title =
+    pathname === "/deals/new"
+      ? "Analyse a property"
+      : (activeNavItem(pathname)?.title ?? APP_NAME)
 
   return (
     <header className="sticky top-0 z-10 box-content flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur transition-[width,height] ease-linear supports-backdrop-filter:bg-background/80">
@@ -39,6 +39,7 @@ export function SiteHeader({
         />
         <h1 className="text-base font-medium">{title}</h1>
         <div className="ml-auto flex items-center gap-2">
+          {actions}
           <div className="md:hidden">
             <HeaderUserMenu name={user.name} email={user.email} />
           </div>

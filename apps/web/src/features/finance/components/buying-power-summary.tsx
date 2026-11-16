@@ -2,7 +2,11 @@ import { StatCard } from "@/components/blocks/stat-card"
 import { formatMoney } from "@/lib/format/money"
 import type { BuyingPower } from "../rules"
 
-/** Free buying power first (it's the number that matters), then its inputs. */
+/**
+ * Buying power is the total in your fund pots: each deal's affordability is
+ * judged against it. Nothing is held back per deal, so update your pots when
+ * you buy.
+ */
 export function BuyingPowerSummary({
   power,
   potCount,
@@ -10,37 +14,12 @@ export function BuyingPowerSummary({
   power: BuyingPower
   potCount: number
 }) {
-  const activeDeals = power.commitments.length
   return (
-    <section
-      aria-label="Buying power"
-      className="grid grid-cols-2 gap-3 lg:grid-cols-3"
-    >
-      <div className="col-span-2 lg:col-span-1">
-        <StatCard
-          label="Free buying power"
-          value={formatMoney(power.freePence)}
-          tone={power.freePence < 0 ? "negative" : "default"}
-          hint={
-            power.freePence < 0
-              ? "Over-committed: active deals need more cash than you have."
-              : "Available for new deals"
-          }
-        />
-      </div>
+    <section aria-label="Buying power">
       <StatCard
-        label="In fund pots"
+        label="Buying power"
         value={formatMoney(power.totalPotsPence)}
-        hint={`${potCount} pot${potCount === 1 ? "" : "s"}`}
-      />
-      <StatCard
-        label="Committed"
-        value={formatMoney(power.committedPence)}
-        hint={
-          activeDeals === 0
-            ? "No deals at offer or accepted"
-            : `${activeDeals} active deal${activeDeals === 1 ? "" : "s"}`
-        }
+        hint={`Across ${potCount} fund pot${potCount === 1 ? "" : "s"}. Update them when you buy.`}
       />
     </section>
   )

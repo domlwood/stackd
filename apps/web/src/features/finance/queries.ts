@@ -28,6 +28,25 @@ export const listFundPots = cache(async (): Promise<FundPot[]> => {
   return data.map(rowToPot)
 })
 
+/**
+ * Active products only, without "used by" lists, so no portfolio analysis:
+ * cheap enough for the new-deal flow (Workers CPU budget).
+ */
+export const listActiveProducts = cache(async (): Promise<FinanceProduct[]> => {
+  const session = await requireSession()
+  const supabase = await createSupabaseServerClient()
+  const { data, error } = await supabase
+    .from("finance_product")
+    .select("*, erc_band(ordinal, from_month, to_month, pct)")
+    .eq("workspace_id", session.workspaceId)
+    .is("archived_at", null)
+    .order("type")
+    .order("lender")
+  if (error)
+    throw new Error(`Could not load finance products: ${error.message}`)
+  return data.map(({ erc_band, ...row }) => rowToProduct(row, erc_band))
+})
+
 export const listFinanceProducts = cache(
   async ({
     includeArchived = false,
@@ -67,7 +86,7 @@ export const listFinanceProducts = cache(
   }
 )
 
-/** Free buying power = pots − cash required by deals at offer/accepted (computed live). */
+/** Buying power = the total in your fund pots (nothing is held back per deal). */
 export const getBuyingPower = cache(
   async (): Promise<BuyingPower> => (await loadPortfolio()).buyingPower
 )

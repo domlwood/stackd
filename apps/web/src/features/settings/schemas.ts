@@ -35,7 +35,7 @@ export const defaultsSchema = z.object({
     .prefault({}),
   finance: z
     .object({
-      purchaseLtv: ratio.default(0.9),
+      purchaseLtv: ratio.default(0.95),
     })
     .prefault({}),
   refurb: z
@@ -65,7 +65,7 @@ export const defaultsSchema = z.object({
       agentFee: ratio.default(0.012),
       agentFeeVat: z.boolean().default(true),
       saleLegalPence: pence.nonnegative().default(150_000),
-      monthsToSell: months.default(4),
+      monthsToSell: months.default(6),
       /** Other taxable income the flip profit stacks on (income tax / CGT estimates). */
       otherIncomePence: pence.nonnegative().default(5_027_000),
     })

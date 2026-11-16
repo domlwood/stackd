@@ -4,6 +4,7 @@ import { ExternalLinkIcon } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 
+import { ProvenanceChip } from "@/features/analysis/components/provenance-chip"
 import { formatDate } from "@/lib/format/date"
 import { formatMoney } from "@/lib/format/money"
 import { PROPERTY_TYPE_LABELS, TENURE_LABELS } from "../schemas"
@@ -17,6 +18,8 @@ export function ListingSummary({ deal }: { deal: Deal }) {
       ...deal.photoUrls,
     ]),
   ]
+  // Only Rightmove imports carry listing photos; manual entries never do.
+  const imported = Boolean(deal.listingUrl && photos.length)
   const facts = [
     deal.propertyType ? PROPERTY_TYPE_LABELS[deal.propertyType] : null,
     deal.beds !== null ? `${deal.beds} bedrooms` : null,
@@ -32,7 +35,7 @@ export function ListingSummary({ deal }: { deal: Deal }) {
           role="region"
           aria-label="Listing photos"
           tabIndex={0}
-          className="flex snap-x snap-mandatory gap-1 overflow-x-auto focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          className="flex snap-x snap-mandatory gap-1.5 overflow-x-auto p-1.5 pb-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           {photos.map((url, i) => (
             // eslint-disable-next-line @next/next/no-img-element -- remote listing photos
@@ -41,7 +44,7 @@ export function ListingSummary({ deal }: { deal: Deal }) {
               src={url}
               alt={`${deal.addressLine} — photo ${i + 1} of ${photos.length}`}
               loading={i === 0 ? "eager" : "lazy"}
-              className="aspect-[4/3] w-[78%] shrink-0 snap-start object-cover sm:w-[44%]"
+              className="aspect-[4/3] h-24 w-auto shrink-0 snap-start rounded-md object-cover sm:h-28"
             />
           ))}
         </div>
@@ -49,9 +52,14 @@ export function ListingSummary({ deal }: { deal: Deal }) {
       <div className="flex flex-col gap-3 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="text-xs font-medium text-muted-foreground">
-              Asking price
-            </h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xs font-medium text-muted-foreground">
+                Asking price
+              </h3>
+              {imported && deal.askingPricePence !== null ? (
+                <ProvenanceChip tag="imported" />
+              ) : null}
+            </div>
             <p className="text-xl font-semibold tabular-nums">
               {deal.askingPricePence !== null
                 ? formatMoney(deal.askingPricePence)
@@ -85,6 +93,9 @@ export function ListingSummary({ deal }: { deal: Deal }) {
           </p>
         ) : null}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          {imported ? (
+            <span>Imported from Rightmove {formatDate(deal.createdAt)}</span>
+          ) : null}
           {deal.agent ? <span>{deal.agent}</span> : null}
           {deal.listedAt ? (
             <span>Listed {formatDate(deal.listedAt)}</span>

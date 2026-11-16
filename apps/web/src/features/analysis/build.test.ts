@@ -58,8 +58,7 @@ describe("buildAnalysis", () => {
       stored: [agreed("purchase.completionDate", "2031-01-01")],
     })
     expect(built.ok).toBe(false)
-    if (!built.ok)
-      expect(built.message).toMatch(/Add tax rules for that date in Settings/)
+    if (!built.ok) expect(built.message).toMatch(/add tax rules for that date/)
     expect(summarise(built)).toMatchObject({
       verdict: null,
       error: expect.any(String),
@@ -85,5 +84,68 @@ describe("buildAnalysis", () => {
     })
     if (!built.ok) throw new Error()
     expect(built.analysis.keep.available).toBe(false)
+  })
+})
+
+describe("needs details", () => {
+  const noLines = { ...base, refurbLines: [] }
+
+  it("a deal with no end value or refurb cost needs details, not 'doesn't stack'", () => {
+    const built = buildAnalysis({ ...noLines, stored: [] })
+    if (!built.ok) throw new Error(built.message)
+    expect(built.missingDetails).toEqual(["refurb.budget", "exit.gdv"])
+    expect(built.analysis.verdict.level).toBe("needs_details")
+    expect(built.analysis.verdict.reasons).toEqual([
+      "Add your end value and refurb cost to see whether it stacks.",
+    ])
+    expect(summarise(built).verdict).toBe("needs_details")
+  })
+
+  it("one missing number is enough to hold the verdict back", () => {
+    const built = buildAnalysis({
+      ...noLines,
+      stored: [agreed("exit.gdv", 30_000_000)],
+    })
+    if (!built.ok) throw new Error(built.message)
+    expect(built.missingDetails).toEqual(["refurb.budget"])
+    expect(built.analysis.verdict.reasons).toEqual([
+      "Add your refurb cost to see whether it stacks.",
+    ])
+  })
+
+  it("an explicit £0 refurb counts as provided, and the real verdict returns", () => {
+    const built = buildAnalysis({
+      ...noLines,
+      stored: [agreed("exit.gdv", 30_000_000), agreed("refurb.budget", 0)],
+    })
+    if (!built.ok) throw new Error(built.message)
+    expect(built.missingDetails).toEqual([])
+    expect(built.analysis.verdict.level).not.toBe("needs_details")
+  })
+
+  it("refurb line items count as a refurb cost", () => {
+    const built = buildAnalysis({
+      ...base,
+      stored: [agreed("exit.gdv", 30_000_000)],
+    })
+    if (!built.ok) throw new Error(built.message)
+    expect(built.missingDetails).toEqual([])
+  })
+
+  it("no asking price and no offer means the offer price is missing too", () => {
+    const built = buildAnalysis({
+      ...noLines,
+      deal: { askingPricePence: null },
+      stored: [],
+    })
+    if (!built.ok) throw new Error(built.message)
+    expect(built.missingDetails).toEqual([
+      "purchase.price",
+      "refurb.budget",
+      "exit.gdv",
+    ])
+    expect(built.analysis.verdict.reasons[0]).toBe(
+      "Add your end value, refurb cost and offer price to see whether it stacks."
+    )
   })
 })

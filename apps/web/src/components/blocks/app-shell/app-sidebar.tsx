@@ -1,7 +1,6 @@
 "use client"
 
 import type * as React from "react"
-import { LayersIcon } from "lucide-react"
 
 import {
   Sidebar,
@@ -14,6 +13,7 @@ import {
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
 
+import { DealframeMark } from "@/components/brand/logo"
 import { APP_NAME } from "@/lib/app"
 
 import { NavMain } from "./nav-main"
@@ -36,13 +36,13 @@ export function AppSidebar({ user, workspaceName, ...props }: AppSidebarProps) {
               className="pointer-events-none"
               render={<div />}
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <LayersIcon className="size-4" aria-hidden />
+              {/* Symbol only when collapsed; the wordmark sits beside it. */}
+              <div className="flex aspect-square size-8 items-center justify-center">
+                <DealframeMark className="size-6" />
               </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{APP_NAME}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {workspaceName}
+              <div className="grid flex-1 gap-1 text-left leading-tight">
+                <span className="truncate text-[1.0625rem] leading-none font-semibold tracking-[-0.015em]">
+                  {APP_NAME}
                 </span>
               </div>
             </SidebarMenuButton>

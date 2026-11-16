@@ -13,7 +13,12 @@ import type {
 export type LoanConstraint = "ltv" | "icr" | "product_ltv"
 
 export type KeepResult =
-  | { available: false; reason: string }
+  | {
+      available: false
+      reason: string
+      /** Keeping isn't part of the chosen strategy (not a setup problem). */
+      notInPlan?: true
+    }
   | {
       available: true
       months: Months

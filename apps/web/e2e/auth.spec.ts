@@ -32,7 +32,9 @@ test("seeded user can sign in and sees the shell", async ({
   await page.getByLabel("Email").fill(email ?? "")
   await page.getByLabel("Password").fill(password ?? "")
   await page.getByRole("button", { name: "Sign in" }).click()
-  await expect(page.getByRole("heading", { name: "Pipeline" })).toBeVisible()
+  await expect(
+    page.getByRole("heading", { name: "Deals", exact: true, level: 1 })
+  ).toBeVisible()
   const primaryNav = isMobile
     ? page.getByRole("navigation", { name: "Primary" })
     : page.locator("[data-sidebar=sidebar]")

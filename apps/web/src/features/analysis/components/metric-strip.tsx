@@ -41,7 +41,7 @@ function Metric({
   )
 }
 
-/** Header strip: verdict, cash, affordability, and Flip vs Keep side by side. */
+/** Header strip: verdict, cash, affordability, and the plan's exit(s). */
 export function MetricStrip() {
   const { built } = useDeal()
   if (!built.ok) {
@@ -54,6 +54,8 @@ export function MetricStrip() {
   }
   const { analysis } = built
   const { flip, keep, affordability, verdict } = analysis
+  const strategy = built.inputs.plan.strategy
+  const showKeep = strategy === "brr"
 
   return (
     <section aria-label="Deal summary" className="flex flex-col gap-3">
@@ -82,17 +84,20 @@ export function MetricStrip() {
                 </div>
               )}
               <div className="truncate text-xs text-muted-foreground">
-                Free buying power{" "}
-                {formatMoney(affordability.freeBuyingPowerPence)}
+                Buying power {formatMoney(affordability.freeBuyingPowerPence)}
               </div>
             </div>
           ) : null}
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div
+        className={cn("grid gap-3", showKeep && "grid-cols-2 xl:grid-cols-1")}
+      >
         <Card size="sm" className="gap-2 px-3 sm:px-4">
-          <div className="text-sm font-medium">Flip</div>
+          <div className="text-sm font-medium">
+            {strategy === "live_in_sell" ? "Sale" : "Flip"}
+          </div>
           <Metric
             label="Profit"
             value={formatMoney(flip.profitPence)}
@@ -104,58 +109,65 @@ export function MetricStrip() {
             <Metric label="Timeline" value={`${flip.months} mo`} />
           </div>
         </Card>
-        <Card size="sm" className="gap-2 px-3 sm:px-4">
-          <div className="text-sm font-medium">Keep</div>
-          {keep.available ? (
-            <>
-              <Metric
-                label="Money left in"
-                value={
-                  keep.moneyLeftInPence <= 0
-                    ? "£0"
-                    : formatMoney(keep.moneyLeftInPence)
-                }
-                tone={keep.moneyLeftInPence <= 0 ? "positive" : undefined}
-                sub={
-                  keep.moneyLeftInPence < 0
-                    ? `${formatMoney(-keep.moneyLeftInPence)} pulled out`
-                    : `Refinance at month ${keep.months}`
-                }
-              />
-              <div className="grid grid-cols-2 gap-2">
+        {showKeep ? (
+          <Card size="sm" className="gap-2 px-3 sm:px-4">
+            <div className="text-sm font-medium">Keep</div>
+            {keep.available ? (
+              <>
                 <Metric
-                  label="Cashflow"
-                  value={`${formatMoney(keep.monthlyCashflowPence)}/m`}
-                  tone={keep.monthlyCashflowPence < 0 ? "negative" : undefined}
+                  label="Money left in"
+                  value={
+                    keep.moneyLeftInPence <= 0
+                      ? "£0"
+                      : formatMoney(keep.moneyLeftInPence)
+                  }
+                  tone={keep.moneyLeftInPence <= 0 ? "positive" : undefined}
+                  sub={
+                    keep.moneyLeftInPence < 0
+                      ? `${formatMoney(-keep.moneyLeftInPence)} pulled out`
+                      : `Refinance at month ${keep.months}`
+                  }
                 />
-                <div className="min-w-0">
-                  <div className="text-xs text-muted-foreground">
-                    ROCE · ICR
-                  </div>
-                  <div className="flex items-center gap-1.5 text-base font-semibold tabular-nums sm:text-lg">
-                    {Number.isFinite(keep.roce) ? (
-                      formatPercent(keep.roce, 1)
-                    ) : (
-                      <InfinityIcon className="size-5" aria-label="Infinite" />
-                    )}
-                    <span
-                      className={cn(
-                        "text-xs font-medium",
-                        keep.icrPass
-                          ? "text-positive-foreground"
-                          : "text-negative-foreground"
+                <div className="grid grid-cols-2 gap-2">
+                  <Metric
+                    label="Cashflow"
+                    value={`${formatMoney(keep.monthlyCashflowPence)}/m`}
+                    tone={
+                      keep.monthlyCashflowPence < 0 ? "negative" : undefined
+                    }
+                  />
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground">
+                      ROCE · ICR
+                    </div>
+                    <div className="flex items-center gap-1.5 text-base font-semibold tabular-nums sm:text-lg">
+                      {Number.isFinite(keep.roce) ? (
+                        formatPercent(keep.roce, 1)
+                      ) : (
+                        <InfinityIcon
+                          className="size-5"
+                          aria-label="Infinite"
+                        />
                       )}
-                    >
-                      {keep.icrPass ? "ICR ✓" : "ICR ✗"}
-                    </span>
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          keep.icrPass
+                            ? "text-positive-foreground"
+                            : "text-negative-foreground"
+                        )}
+                      >
+                        {keep.icrPass ? "ICR ✓" : "ICR ✗"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">{keep.reason}</p>
-          )}
-        </Card>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">{keep.reason}</p>
+            )}
+          </Card>
+        ) : null}
       </div>
     </section>
   )

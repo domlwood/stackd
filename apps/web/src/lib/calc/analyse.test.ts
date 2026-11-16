@@ -212,6 +212,48 @@ describe("keep edge cases", () => {
       )
   })
 
+  it("live in & sell: no keep exit, no tax on the sale, one in-context caveat", () => {
+    const a = analyseCore(
+      {
+        ...INPUTS,
+        plan: { strategy: "live_in_sell" },
+        buyer: {
+          ...INPUTS.buyer,
+          additionalProperty: false,
+          firstTimeBuyer: true,
+        },
+        flip: { ...INPUTS.flip, taxMode: "main_residence" },
+      },
+      { ...CTX, purchaseProduct: RESI }
+    )
+    expect(a.keep.available).toBe(false)
+    expect(!a.keep.available && a.keep.notInPlan).toBe(true)
+    expect(a.flip.taxPence).toBe(0)
+    expect(a.flip.profitAfterTaxPence).toBe(a.flip.profitPence)
+    const codes = a.warnings.map((w) => w.code)
+    expect(codes).toContain("live_in_terms")
+    expect(codes).not.toContain("owner_occupier_terms")
+    expect(codes).not.toContain("residential_keep")
+    // Leaving keep out of the plan isn't a reason the deal falls short.
+    expect(a.verdict.reasons.join(" ")).not.toMatch(/let isn't part/)
+  })
+
+  it("flipping with first-time buyer terms keeps the owner-occupier warning", () => {
+    const a = analyseCore(
+      {
+        ...INPUTS,
+        plan: { strategy: "flip" },
+        buyer: {
+          ...INPUTS.buyer,
+          additionalProperty: false,
+          firstTimeBuyer: true,
+        },
+      },
+      { ...CTX, purchaseProduct: RESI }
+    )
+    expect(a.warnings.map((w) => w.code)).toContain("owner_occupier_terms")
+  })
+
   it("refinance cashback increases cash released", () => {
     const plain = analyseCore(INPUTS, CTX)
     const cashback = analyseCore(INPUTS, {

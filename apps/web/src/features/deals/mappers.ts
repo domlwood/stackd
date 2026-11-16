@@ -8,6 +8,8 @@ export function rowToDeal(row: Tables<"deal">): Deal {
     status: row.status as Deal["status"],
     passedReason: row.passed_reason,
     statusChangedAt: row.status_changed_at,
+    // ?? null: tolerate a database that predates the archive migration.
+    archivedAt: row.archived_at ?? null,
     addressLine: row.address_line,
     postcode: row.postcode,
     lat: row.lat,

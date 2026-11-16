@@ -59,7 +59,14 @@ export type CalcProduct = {
 }
 
 export type BuyerEntity = "personal" | "ltd"
-export type TaxMode = "income_tax" | "cgt" | "corp_tax"
+export type TaxMode = "income_tax" | "cgt" | "corp_tax" | "main_residence"
+
+/**
+ * How the deal is meant to end. "live_in_sell": buy as your home on a
+ * residential mortgage, refurb while living there, sell. "flip": buy, refurb,
+ * sell. "brr": compare flipping with refinancing and keeping it as a let.
+ */
+export type Strategy = "live_in_sell" | "flip" | "brr"
 
 export type RefurbItem = {
   id: string
@@ -70,6 +77,7 @@ export type RefurbItem = {
 
 /** Fully-resolved inputs for one view (Agreed or a user's proposals). */
 export type DealInputs = {
+  plan: { strategy: Strategy }
   buyer: {
     entity: BuyerEntity
     additionalProperty: boolean

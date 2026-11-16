@@ -6,7 +6,9 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { inputDef } from "@/lib/inputs/registry"
 import { formatInputValue } from "../format"
+import { provenanceTag } from "../provenance"
 import { useDeal } from "./deal-provider"
+import { ProvenanceChip } from "./provenance-chip"
 
 /** Tappable rows for a set of inputs: label, value, and where the value came from. */
 export function InputList({
@@ -32,6 +34,10 @@ export function InputList({
           const value = built.resolved.values[key]
           const stored = provenance?.stored
           const isDefault = provenance?.origin === "default"
+          const tag = provenanceTag(key, provenance, built.resolved.values, {
+            askingPricePence: data.deal.askingPricePence,
+            refurbLineCount: data.refurbLines.length,
+          })
           return (
             <li key={key}>
               <button
@@ -43,7 +49,10 @@ export function InputList({
                 )}
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate">{def.label}</span>
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <span className="truncate">{def.label}</span>
+                    {tag ? <ProvenanceChip tag={tag} /> : null}
+                  </span>
                   {stored?.sourceText ? (
                     <span className="block truncate text-xs text-muted-foreground">
                       {stored.sourceText}
@@ -69,9 +78,6 @@ export function InputList({
                   )}
                 >
                   {formatInputValue(def, value, data.products)}
-                  {isDefault ? (
-                    <span className="sr-only"> (default)</span>
-                  ) : null}
                 </span>
                 <ChevronRightIcon
                   className="size-4 shrink-0 text-muted-foreground"

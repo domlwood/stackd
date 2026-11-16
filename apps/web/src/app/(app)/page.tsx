@@ -1,10 +1,9 @@
 import type { Metadata } from "next"
 
-import { BuyingPowerSummary } from "@/features/finance/components/buying-power-summary"
 import { PipelineView } from "@/features/deals/components/pipeline-view"
 import { loadPortfolio } from "@/features/deals/portfolio"
 
-export const metadata: Metadata = { title: "Pipeline" }
+export const metadata: Metadata = { title: "Deals" }
 
 export default async function PipelinePage() {
   const portfolio = await loadPortfolio()

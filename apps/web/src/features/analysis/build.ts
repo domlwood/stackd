@@ -8,6 +8,7 @@ import {
   type RuleSetRecord,
 } from "@/lib/calc/rules/schema"
 import type { CalcProduct, DealInputs } from "@/lib/calc/types"
+import type { VerdictLevel } from "@/lib/calc/verdict"
 import type { DefaultsSource } from "@/lib/inputs/registry"
 import {
   resolveInputs,
@@ -16,6 +17,7 @@ import {
   type View,
 } from "@/lib/inputs/resolve"
 import { toDealInputs } from "@/lib/inputs/to-deal-inputs"
+import { missingDetails, missingDetailsReason } from "./provenance"
 import type { WorkspaceSettings } from "@/features/settings/schemas"
 import type { Deal, RefurbLineRecord } from "@/features/deals/types"
 
@@ -25,6 +27,8 @@ export type BuiltAnalysis =
       resolved: ResolvedInputs
       inputs: DealInputs
       analysis: FullDealAnalysis
+      /** Verdict-critical numbers still missing; non-empty ⇒ verdict "needs_details". */
+      missingDetails: string[]
       purchaseProduct: CalcProduct | null
       refiProduct: CalcProduct | null
     }
@@ -91,15 +95,32 @@ export function buildAnalysis(args: {
       buyBox: args.settings.buyBox,
       freeBuyingPowerPence: args.freeBuyingPowerPence,
     }
-    const analysis: FullDealAnalysis =
+    const raw: FullDealAnalysis =
       args.withSensitivity === false
         ? { ...analyseCore(inputs, ctx), sensitivity: [] }
         : analyseDeal(inputs, ctx)
+    // Placeholder numbers (end value = asking price, no refurb) can't give a
+    // fair verdict, so don't call the deal "doesn't stack" on them.
+    const missing = missingDetails(resolved.provenance, resolved.values, {
+      askingPricePence: args.deal.askingPricePence,
+      refurbLineCount: args.refurbLines.length,
+    })
+    const analysis: FullDealAnalysis = missing.length
+      ? {
+          ...raw,
+          verdict: {
+            ...raw.verdict,
+            level: "needs_details",
+            reasons: [missingDetailsReason(missing)],
+          },
+        }
+      : raw
     return {
       ok: true,
       resolved,
       inputs,
       analysis,
+      missingDetails: missing,
       purchaseProduct,
       refiProduct,
     }
@@ -109,14 +130,14 @@ export function buildAnalysis(args: {
         ok: false,
         resolved,
         message:
-          "The stored tax rules for this date are incomplete, so we can't run the numbers. Check the tax rules in Settings.",
+          "The stored tax rules for this date are incomplete, so we can't run the numbers. The tax rules need fixing before this deal can be analysed.",
       }
     }
     if (error instanceof MissingTaxRulesError) {
       return {
         ok: false,
         resolved,
-        message: `${error.message}. Add tax rules for that date in Settings, or change the expected completion date.`,
+        message: `${error.message}. Change the expected completion date, or add tax rules for that date.`,
       }
     }
     throw error
@@ -125,7 +146,7 @@ export function buildAnalysis(args: {
 
 /** Compact Agreed-view summary for pipeline cards and tables. */
 export type DealSummary = {
-  verdict: "stacks" | "marginal" | "doesnt_stack" | null
+  verdict: VerdictLevel | null
   cashRequiredPence: number | null
   flipProfitPence: number | null
   flipRoi: number | null

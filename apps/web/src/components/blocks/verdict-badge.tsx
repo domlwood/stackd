@@ -1,10 +1,11 @@
 /**
  * VerdictBadge — deal verdict against the buy box. Colour carries meaning only.
- * Props: level ("stacks" | "marginal" | "doesnt_stack" | null), size? ("sm" | "default")
+ * Props: level (VerdictLevel | null), className?
  * Usage: <VerdictBadge level={analysis.verdict.level} />
  */
 import {
   CircleCheckIcon,
+  CircleDashedIcon,
   CircleMinusIcon,
   CircleXIcon,
   type LucideIcon,
@@ -13,12 +14,15 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
-export type VerdictLevel = "stacks" | "marginal" | "doesnt_stack"
+import type { VerdictLevel } from "@/lib/calc/verdict"
+
+export type { VerdictLevel }
 
 export const VERDICT_LABELS: Record<VerdictLevel, string> = {
   stacks: "Stacks",
   marginal: "Marginal",
   doesnt_stack: "Doesn't stack",
+  needs_details: "Needs details",
 }
 
 const STYLES: Record<VerdictLevel, { className: string; icon: LucideIcon }> = {
@@ -33,6 +37,11 @@ const STYLES: Record<VerdictLevel, { className: string; icon: LucideIcon }> = {
   doesnt_stack: {
     className: "border-negative/40 bg-negative/10 text-negative-foreground",
     icon: CircleXIcon,
+  },
+  // Neutral, not a judgement: the deal just isn't fully specified yet.
+  needs_details: {
+    className: "border-border bg-muted text-muted-foreground",
+    icon: CircleDashedIcon,
   },
 }
 

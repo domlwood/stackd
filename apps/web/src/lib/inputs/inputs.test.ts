@@ -280,3 +280,63 @@ describe("registry", () => {
     expect(missing).toEqual([])
   })
 })
+
+describe("plan strategy and the tax treatment it implies", () => {
+  const PRODUCT = "22222222-2222-4222-8222-222222222222"
+  const resolve = (rows: StoredInput[]) =>
+    resolveInputs({
+      stored: rows,
+      defaults: DEFAULTS,
+      view: { kind: "agreed" },
+      refurbItemIds: [],
+    })
+
+  it("a personal first-time buyer defaults to live in & sell, with no tax on the sale", () => {
+    const r = resolve([stored("buyer.firstTimeBuyer", true)])
+    expect(r.values["plan.strategy"]).toBe("live_in_sell")
+    expect(r.values["flip.taxMode"]).toBe("main_residence")
+  })
+
+  it("a deal with a refinance product stays a BRR comparison", () => {
+    const r = resolve([
+      stored("buyer.firstTimeBuyer", true),
+      stored("keep.product", PRODUCT),
+    ])
+    expect(r.values["plan.strategy"]).toBe("brr")
+    expect(r.values["flip.taxMode"]).toBe("income_tax")
+  })
+
+  it("other buyers default to a flip taxed as trading", () => {
+    const r = resolve([])
+    expect(r.values["plan.strategy"]).toBe("flip")
+    expect(r.values["flip.taxMode"]).toBe("income_tax")
+  })
+
+  it("an explicit choice wins over the default, and drives the tax default", () => {
+    const r = resolve([
+      stored("buyer.firstTimeBuyer", true),
+      stored("plan.strategy", "flip"),
+    ])
+    expect(r.values["plan.strategy"]).toBe("flip")
+    expect(r.values["flip.taxMode"]).toBe("income_tax")
+  })
+
+  it("a stored tax treatment is never overridden by the plan", () => {
+    const r = resolve([
+      stored("buyer.firstTimeBuyer", true),
+      stored("flip.taxMode", "cgt"),
+    ])
+    expect(r.values["flip.taxMode"]).toBe("cgt")
+  })
+
+  it("derived values don't show as proposal diffs when the plan is only agreed", () => {
+    const r = resolveInputs({
+      stored: [stored("buyer.firstTimeBuyer", true)],
+      defaults: DEFAULTS,
+      view: { kind: "user", userId: BLAIR },
+      refurbItemIds: [],
+    })
+    expect(r.diffKeys).not.toContain("flip.taxMode")
+    expect(r.diffKeys).not.toContain("plan.strategy")
+  })
+})

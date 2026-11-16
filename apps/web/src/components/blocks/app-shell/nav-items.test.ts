@@ -2,12 +2,17 @@ import { activeNavItem } from "./nav-items"
 
 describe("activeNavItem", () => {
   it.each([
-    ["/", "Pipeline"],
-    ["/deals/abc/analysis", "Pipeline"],
+    ["/deals/new", "Deals"],
+    ["/", "Deals"],
+    ["/deals/abc", "Deals"],
+    ["/deals/abc/listing", "Deals"],
     ["/finance", "Finance"],
     ["/finance/products/1", "Finance"],
-    ["/settings", "Settings"],
   ])("%s → %s", (path, title) => {
     expect(activeNavItem(path)?.title).toBe(title)
+  })
+
+  it("has no item for hidden pages", () => {
+    expect(activeNavItem("/settings")).toBeUndefined()
   })
 })

@@ -44,6 +44,33 @@ describe("describeActivity", () => {
       describeActivity({
         action: "update",
         entityType: "deal",
+        field: "status",
+        oldValue: "active",
+        newValue: "bought",
+      })
+    ).toBe("moved the deal: Active → Bought")
+    expect(
+      describeActivity({
+        action: "update",
+        entityType: "deal",
+        field: "archived_at",
+        oldValue: null,
+        newValue: "2026-11-16T12:00:00Z",
+      })
+    ).toBe("archived the deal")
+    expect(
+      describeActivity({
+        action: "update",
+        entityType: "deal",
+        field: "archived_at",
+        oldValue: "2026-11-16T12:00:00Z",
+        newValue: null,
+      })
+    ).toBe("restored the deal")
+    expect(
+      describeActivity({
+        action: "update",
+        entityType: "deal",
         field: "status_changed_at",
         oldValue: "a",
         newValue: "b",

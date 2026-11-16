@@ -1,26 +1,26 @@
 import { z } from "zod"
 
-export const DEAL_STATUSES = [
-  "lead",
-  "analysing",
-  "viewing",
-  "offer",
-  "accepted",
-  "passed",
-] as const
+/**
+ * Status records your decision only; the verdict says how good the deal is.
+ * Active: still in play. Passed: decided against (needs a reason). Bought: yours.
+ */
+export const DEAL_STATUSES = ["active", "passed", "bought"] as const
 export type DealStatus = (typeof DEAL_STATUSES)[number]
 
 export const DEAL_STATUS_LABELS: Record<DealStatus, string> = {
+  active: "Active",
+  passed: "Passed",
+  bought: "Bought",
+}
+
+/** Statuses retired in Nov 2026 (all became Active); kept so old activity reads well. */
+export const LEGACY_STATUS_LABELS: Record<string, string> = {
   lead: "Lead",
   analysing: "Analysing",
   viewing: "Viewing",
   offer: "Offer",
   accepted: "Accepted",
-  passed: "Passed",
 }
-
-/** Statuses whose cash counts as committed against buying power. */
-export const COMMITTED_STATUSES: readonly DealStatus[] = ["offer", "accepted"]
 
 export const PROPERTY_TYPES = [
   "detached",

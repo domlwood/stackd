@@ -29,8 +29,9 @@ export type BuyingPower = {
 }
 
 /**
- * Free buying power = total of all fund pots − cash committed to active deals
- * (status offer / accepted). Can go negative (over-committed).
+ * Free buying power = total of all fund pots − any commitments passed in.
+ * The app currently passes none (buying power is simply the pots' total);
+ * commitments remain supported for a future "offer made" hold-back.
  */
 export function computeBuyingPower(
   pots: readonly { ownerUserId: string; amountPence: Pence }[],

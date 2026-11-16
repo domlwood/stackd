@@ -2,7 +2,13 @@
 
 import Link from "next/link"
 import type { Route } from "next"
-import { CircleAlertIcon, HouseIcon, MoveRightIcon } from "lucide-react"
+import {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
+  CircleAlertIcon,
+  EllipsisVerticalIcon,
+  HouseIcon,
+} from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -13,6 +19,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 
@@ -20,10 +27,11 @@ import { VerdictBadge } from "@/components/blocks/verdict-badge"
 import { formatMoney } from "@/lib/format/money"
 import type { PortfolioDeal } from "../portfolio"
 import { DEAL_STATUSES, DEAL_STATUS_LABELS, type DealStatus } from "../schemas"
+import { toggleArchive } from "./archive"
 
 /**
- * DealCard — pipeline card: photo, address, price, verdict, flip profit, money left in, affordability.
- * The whole card links to the deal; "Move to…" changes status without dragging (keyboard and touch friendly).
+ * DealCard — deal grid card: photo, address, status, price, verdict, profit, money left in or cash needed, affordability.
+ * The whole card links to the deal; its menu changes status or archives it.
  */
 export function DealCard({
   deal,
@@ -62,6 +70,7 @@ export function DealCard({
           </Link>
           <div className="text-xs text-muted-foreground tabular-nums">
             {[
+              DEAL_STATUS_LABELS[deal.status],
               deal.postcode,
               deal.askingPricePence !== null
                 ? formatMoney(deal.askingPricePence)
@@ -79,16 +88,28 @@ export function DealCard({
         </p>
       ) : (
         <dl className="grid grid-cols-2 gap-x-2 text-xs">
-          <dt className="text-muted-foreground">Flip profit</dt>
+          <dt className="text-muted-foreground">Profit</dt>
           <dd className="num font-medium">
             {s.flipProfitPence === null ? "—" : formatMoney(s.flipProfitPence)}
           </dd>
-          <dt className="text-muted-foreground">Money left in</dt>
-          <dd className="num font-medium">
-            {s.moneyLeftInPence === null
-              ? "—"
-              : formatMoney(Math.max(0, s.moneyLeftInPence))}
-          </dd>
+          {/* BRR deals show money left in; sale-only plans show the cash needed. */}
+          {s.moneyLeftInPence !== null ? (
+            <>
+              <dt className="text-muted-foreground">Money left in</dt>
+              <dd className="num font-medium">
+                {formatMoney(Math.max(0, s.moneyLeftInPence))}
+              </dd>
+            </>
+          ) : (
+            <>
+              <dt className="text-muted-foreground">Cash needed</dt>
+              <dd className="num font-medium">
+                {s.cashRequiredPence === null
+                  ? "—"
+                  : formatMoney(s.cashRequiredPence)}
+              </dd>
+            </>
+          )}
         </dl>
       )}
       <div className="relative z-10 flex items-center gap-1.5">
@@ -108,11 +129,11 @@ export function DealCard({
                 variant="ghost"
                 size="icon-sm"
                 className="ml-auto"
-                aria-label={`Move ${deal.addressLine}`}
+                aria-label={`Actions for ${deal.addressLine}`}
               />
             }
           >
-            <MoveRightIcon aria-hidden />
+            <EllipsisVerticalIcon aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
@@ -123,6 +144,17 @@ export function DealCard({
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => void toggleArchive(deal.id, !deal.archivedAt)}
+            >
+              {deal.archivedAt ? (
+                <ArchiveRestoreIcon aria-hidden />
+              ) : (
+                <ArchiveIcon aria-hidden />
+              )}
+              {deal.archivedAt ? "Restore" : "Archive"}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

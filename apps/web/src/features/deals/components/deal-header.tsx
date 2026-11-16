@@ -4,6 +4,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
   ArrowLeftIcon,
   EllipsisVerticalIcon,
   ExternalLinkIcon,
@@ -24,6 +26,7 @@ import { ConfirmDialog } from "@/components/blocks/confirm-dialog"
 import { useDealBase } from "@/features/analysis/components/deal-provider"
 import { deleteDeal } from "../actions"
 import { PROPERTY_TYPE_LABELS } from "../schemas"
+import { toggleArchive } from "./archive"
 import { StatusControl } from "./status-control"
 
 export function DealHeader() {
@@ -45,7 +48,7 @@ export function DealHeader() {
         className="hidden items-center gap-1 text-sm text-muted-foreground hover:text-foreground md:inline-flex"
       >
         <ArrowLeftIcon className="size-4" aria-hidden />
-        Pipeline
+        Deals
       </Link>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
@@ -54,6 +57,20 @@ export function DealHeader() {
           </h2>
           {facts.length ? (
             <p className="text-sm text-muted-foreground">{facts.join(" · ")}</p>
+          ) : null}
+          {deal.archivedAt ? (
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+              <ArchiveIcon className="size-3.5" aria-hidden />
+              Archived, so it&apos;s hidden from your deals.
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto px-0"
+                onClick={() => void toggleArchive(deal.id, false)}
+              >
+                Restore
+              </Button>
+            </p>
           ) : null}
           {deal.status === "passed" && deal.passedReason ? (
             <p className="mt-1 text-sm text-muted-foreground">
@@ -80,7 +97,17 @@ export function DealHeader() {
                 Open listing
               </DropdownMenuItem>
             ) : null}
-            {deal.listingUrl ? <DropdownMenuSeparator /> : null}
+            <DropdownMenuItem
+              onClick={() => void toggleArchive(deal.id, !deal.archivedAt)}
+            >
+              {deal.archivedAt ? (
+                <ArchiveRestoreIcon aria-hidden />
+              ) : (
+                <ArchiveIcon aria-hidden />
+              )}
+              {deal.archivedAt ? "Restore deal" : "Archive deal"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
               onClick={() => setConfirm(true)}
@@ -96,7 +123,7 @@ export function DealHeader() {
         open={confirm}
         onOpenChange={setConfirm}
         title="Delete this deal?"
-        description="This permanently removes the deal, its numbers and refurb lines. If you've just decided against it, move it to Passed instead."
+        description="This permanently removes the deal, its numbers and refurb lines. To just hide it, archive it instead; if you've decided against it, move it to Passed."
         confirmLabel="Delete deal"
         pending={pending}
         onConfirm={() =>

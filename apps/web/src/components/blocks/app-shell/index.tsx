@@ -18,6 +18,7 @@ import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 
 import { AppSidebar } from "./app-sidebar"
 import { MobileTabBar } from "./mobile-tab-bar"
+import { NewDealLauncher } from "./new-deal-launcher"
 import { SiteHeader } from "./site-header"
 
 const HEADER_HEIGHT = "3.5rem"
@@ -53,12 +54,13 @@ export function AppShell({
         <main
           id="main"
           tabIndex={-1}
-          className="flex flex-1 flex-col gap-4 p-4 pb-[calc(9rem+env(safe-area-inset-bottom))] outline-none md:p-6 md:pb-6"
+          className="flex flex-1 flex-col gap-4 p-4 pb-[calc(9rem+env(safe-area-inset-bottom))] outline-none md:p-6 md:pb-24"
         >
           {children}
         </main>
       </SidebarInset>
       <MobileTabBar />
+      <NewDealLauncher />
     </SidebarProvider>
   )
 }

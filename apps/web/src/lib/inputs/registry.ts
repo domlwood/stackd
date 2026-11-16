@@ -1,6 +1,12 @@
 import { z } from "zod"
 
-import type { BuyerEntity, Pence, Ratio, TaxMode } from "@/lib/calc/types"
+import type {
+  BuyerEntity,
+  Pence,
+  Ratio,
+  Strategy,
+  TaxMode,
+} from "@/lib/calc/types"
 
 /**
  * Every editable deal input, by key. Each input is a sourced, owned value
@@ -12,6 +18,7 @@ export type InputKind =
   "money" | "ratio" | "months" | "boolean" | "enum" | "date" | "product"
 
 export type InputSection =
+  | "plan"
   | "buyer"
   | "purchase"
   | "finance"
@@ -84,6 +91,8 @@ export type InputDef<T = unknown> = {
    * Applied only while the input has no stored value.
    */
   derive?: (values: Record<string, unknown>, source: DefaultsSource) => T
+  /** The default is a modelled estimate (labelled "Estimated"), not a preset or rule. */
+  estimate?: true
 }
 
 const money = z.number().int().nonnegative()
@@ -93,9 +102,34 @@ const productId = z.uuid().nullable()
 const isoDate = z.iso.date()
 
 const TAX_MODE_OPTIONS: Record<TaxMode, string> = {
+  main_residence: "Main residence (no tax)",
   income_tax: "Income tax (trading)",
   cgt: "Capital gains tax",
   corp_tax: "Corporation tax",
+}
+
+export const STRATEGY_OPTIONS: Record<Strategy, string> = {
+  live_in_sell: "Live in & sell",
+  flip: "Flip",
+  brr: "Flip or keep (BRR)",
+}
+
+export const STRATEGY_DESCRIPTIONS: Record<Strategy, string> = {
+  live_in_sell: "Buy it as your home, refurb while you live there, then sell.",
+  flip: "Buy, refurb and sell without living there.",
+  brr: "Compare selling with refinancing and keeping it as a let.",
+}
+
+/** Live in & sell suits personal first-time buyers; a chosen refinance product means BRR. */
+function defaultStrategy(values: {
+  entity: unknown
+  firstTimeBuyer: unknown
+  refiProduct: unknown
+}): Strategy {
+  if (values.refiProduct) return "brr"
+  return values.entity === "personal" && values.firstTimeBuyer
+    ? "live_in_sell"
+    : "flip"
 }
 
 function addMonths(isoDay: string, count: number): string {
@@ -109,6 +143,27 @@ function def<T>(d: InputDef<T>): InputDef<T> {
 }
 
 export const INPUT_DEFS = [
+  // Plan — first, so inputs derived from it (tax treatment) see its value.
+  def({
+    key: "plan.strategy",
+    label: "Plan",
+    section: "plan",
+    kind: "enum",
+    options: STRATEGY_OPTIONS,
+    schema: z.enum(["live_in_sell", "flip", "brr"]),
+    defaultValue: (s) =>
+      defaultStrategy({
+        entity: s.buyerEntity,
+        firstTimeBuyer: s.defaults.buyer.firstTimeBuyer,
+        refiProduct: null,
+      }),
+    derive: (values) =>
+      defaultStrategy({
+        entity: values["buyer.entity"],
+        firstTimeBuyer: values["buyer.firstTimeBuyer"],
+        refiProduct: values["keep.product"],
+      }),
+  }),
   // Buyer
   def({
     key: "buyer.entity",
@@ -340,8 +395,14 @@ export const INPUT_DEFS = [
     section: "flip",
     kind: "enum",
     options: TAX_MODE_OPTIONS,
-    schema: z.enum(["income_tax", "cgt", "corp_tax"]),
+    schema: z.enum(["income_tax", "cgt", "corp_tax", "main_residence"]),
     defaultValue: (s) => (s.buyerEntity === "ltd" ? "corp_tax" : "income_tax"),
+    derive: (values) =>
+      values["plan.strategy"] === "live_in_sell"
+        ? "main_residence"
+        : values["buyer.entity"] === "ltd"
+          ? "corp_tax"
+          : "income_tax",
   }),
   def({
     key: "flip.otherIncome",
@@ -378,6 +439,7 @@ export const INPUT_DEFS = [
     kind: "money",
     description:
       "Estimated from the end value and your gross-yield preset until you enter a figure.",
+    estimate: true,
     schema: money,
     defaultValue: () => 0,
     derive: (values, s) =>

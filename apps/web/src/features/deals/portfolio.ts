@@ -10,16 +10,11 @@ import {
   type DealSummary,
 } from "@/features/analysis/build"
 import { rowToPot, rowToProduct } from "@/features/finance/mappers"
-import {
-  computeBuyingPower,
-  type BuyingPower,
-  type Commitment,
-} from "@/features/finance/rules"
+import { computeBuyingPower, type BuyingPower } from "@/features/finance/rules"
 import type { FinanceProduct, FundPot } from "@/features/finance/schemas"
 import { listTaxRuleRecords } from "@/features/settings/tax-rules"
 import { getSettings } from "@/features/workspace/queries"
 import { rowToDeal, rowToStoredInput } from "./mappers"
-import { COMMITTED_STATUSES } from "./schemas"
 import type { Deal, RefurbLineRecord } from "./types"
 
 export type PortfolioDeal = Deal & { summary: DealSummary }
@@ -31,15 +26,15 @@ export type Portfolio = {
   buyingPower: BuyingPower
   /** Deals referencing each product (Agreed view). */
   usedBy: Record<string, { dealId: string; label: string }[]>
-  /** Total in pots minus everyone else's commitments: per-deal free buying power. */
-  freeExcluding: (dealId: string) => number
+  /** What each deal's affordability is judged against: the total in your pots. */
+  freeBuyingPowerPence: number
 }
 
 export const todayIso = () => new Date().toISOString().slice(0, 10)
 
 /**
  * Loads every deal with its Agreed inputs and analyses them all (pure, fast).
- * Feeds the pipeline, committed cash and product "used by" lists. Always fresh.
+ * Feeds the Deals grid, buying power and product "used by" lists. Always fresh.
  */
 export const loadPortfolio = cache(async (): Promise<Portfolio> => {
   const session = await requireSession()
@@ -132,26 +127,14 @@ export const loadPortfolio = cache(async (): Promise<Portfolio> => {
       withSensitivity: false,
     })
 
-  // Pass 1: cash required per deal → commitments.
-  const first = built.map((b) => ({ b, result: analyse(b, null) }))
-  const commitments: Commitment[] = first
-    .filter(
-      ({ b, result }) => COMMITTED_STATUSES.includes(b.deal.status) && result.ok
-    )
-    .map(({ b, result }) => ({
-      dealId: b.deal.id,
-      label: b.deal.addressLine,
-      cashRequiredPence: result.ok ? result.analysis.cashRequired.value : 0,
-    }))
-  const buyingPower = computeBuyingPower(pots, commitments)
-  const freeExcluding = (dealId: string) =>
-    buyingPower.freePence +
-    (commitments.find((c) => c.dealId === dealId)?.cashRequiredPence ?? 0)
+  // Buying power is simply what's in your pots: nothing is held back per deal
+  // (update your pots when you buy). One engine pass per deal.
+  const buyingPower = computeBuyingPower(pots, [])
+  const free = buyingPower.freePence
 
-  // Pass 2: affordability needs everyone else's commitments.
   const usedBy: Portfolio["usedBy"] = {}
-  const portfolioDeals = first.map(({ b }) => {
-    const result = analyse(b, freeExcluding(b.deal.id))
+  const portfolioDeals = built.map((b) => {
+    const result = analyse(b, free)
     if (result.ok) {
       for (const product of [result.purchaseProduct, result.refiProduct]) {
         if (!product?.id) continue
@@ -169,6 +152,6 @@ export const loadPortfolio = cache(async (): Promise<Portfolio> => {
     products,
     buyingPower,
     usedBy,
-    freeExcluding,
+    freeBuyingPowerPence: free,
   }
 })

@@ -5,6 +5,7 @@ import { z } from "zod"
 
 import { requireSession } from "@/lib/auth/session"
 import { serverEnv } from "@/lib/env"
+import { getNewDealOptions, type NewDealOptions } from "./options"
 import { fromDbError, fromZodError, type ActionResult } from "@/lib/errors"
 import { nearestPostcode } from "@/lib/ingest/postcodes"
 import {
@@ -170,7 +171,7 @@ export async function captureFromLink(input: unknown): Promise<CaptureResult> {
     .from("deal")
     .insert({
       workspace_id: session.workspaceId,
-      status: "analysing",
+      status: "active",
       address_line: d.addressLine,
       postcode: d.postcode,
       property_type: d.propertyType,
@@ -220,7 +221,7 @@ export async function captureFromLink(input: unknown): Promise<CaptureResult> {
     dealId: deal.id,
     existing: false,
     message: partial
-      ? "Some details couldn't be read. Check the Listing tab."
+      ? "We imported the details we could find. Review the missing fields on the Listing tab."
       : undefined,
   }
 }
@@ -241,7 +242,7 @@ export async function createDealManually(
     .from("deal")
     .insert({
       workspace_id: session.workspaceId,
-      status: "analysing",
+      status: "active",
       address_line: d.addressLine,
       postcode: d.postcode,
       property_type: d.propertyType,
@@ -265,4 +266,9 @@ export async function createDealManually(
     .insert(initialInputs({ session, dealId: deal.id, product, settings }))
   revalidatePath("/")
   return { ok: true, data: { id: deal.id } }
+}
+
+/** Products for the + sheet, fetched only when it opens (keeps every page light). */
+export async function loadNewDealOptions(): Promise<NewDealOptions> {
+  return getNewDealOptions()
 }

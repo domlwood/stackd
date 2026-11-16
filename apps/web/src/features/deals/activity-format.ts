@@ -1,7 +1,11 @@
 import { inputDef } from "@/lib/inputs/registry"
 import { formatInputValue, type ProductLabel } from "@/features/analysis/format"
 import { formatMoney } from "@/lib/format/money"
-import { DEAL_STATUS_LABELS, type DealStatus } from "./schemas"
+import {
+  DEAL_STATUS_LABELS,
+  LEGACY_STATUS_LABELS,
+  type DealStatus,
+} from "./schemas"
 
 export type ActivityLike = {
   action: string
@@ -45,7 +49,11 @@ function valueOf(payload: unknown): unknown {
 function plain(field: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—"
   if (field === "status")
-    return DEAL_STATUS_LABELS[value as DealStatus] ?? String(value)
+    return (
+      DEAL_STATUS_LABELS[value as DealStatus] ??
+      LEGACY_STATUS_LABELS[String(value)] ??
+      String(value)
+    )
   if (field.endsWith("_pence")) return formatMoney(Number(value))
   return String(value)
 }
@@ -81,6 +89,8 @@ export function describeActivity(
     if (event.action === "delete") return "deleted the deal"
     if (!event.field || HIDDEN_DEAL_FIELDS.has(event.field)) return null
     const label = DEAL_FIELD_LABELS[event.field] ?? event.field
+    if (event.field === "archived_at")
+      return event.newValue ? "archived the deal" : "restored the deal"
     if (event.field === "status")
       return `moved the deal: ${plain("status", event.oldValue)} → ${plain("status", event.newValue)}`
     return `changed ${label}: ${plain(event.field, event.oldValue)} → ${plain(event.field, event.newValue)}`

@@ -95,6 +95,7 @@ export const BUY_BOX: BuyBox = {
 }
 
 export const INPUTS: DealInputs = {
+  plan: { strategy: "brr" },
   buyer: {
     entity: "personal",
     additionalProperty: true,

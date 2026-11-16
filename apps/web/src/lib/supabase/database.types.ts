@@ -97,6 +97,7 @@ export type Database = {
           property_type: string | null
           status: string
           status_changed_at: string
+          archived_at: string | null
           tenure: string | null
           updated_at: string
           workspace_id: string
@@ -126,6 +127,7 @@ export type Database = {
           property_type?: string | null
           status?: string
           status_changed_at?: string
+          archived_at?: string | null
           tenure?: string | null
           updated_at?: string
           workspace_id: string
@@ -155,6 +157,7 @@ export type Database = {
           property_type?: string | null
           status?: string
           status_changed_at?: string
+          archived_at?: string | null
           tenure?: string | null
           updated_at?: string
           workspace_id?: string

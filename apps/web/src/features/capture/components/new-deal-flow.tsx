@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import type { Route } from "next"
 import Link from "next/link"
 import { useState, useTransition } from "react"
-import { CircleAlertIcon, LinkIcon, SparklesIcon } from "lucide-react"
+import { CircleAlertIcon, DownloadIcon, LinkIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Alert, AlertDescription } from "@workspace/ui/components/alert"
@@ -48,6 +48,25 @@ function ProductPicker({
   value: string
   onChange: (v: string) => void
 }) {
+  const [open, setOpen] = useState(false)
+  const chosen = products.find((p) => p.id === value)
+  // With a default chosen, finance is one quiet line; change it only if you need to.
+  if (chosen && !open) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Finance: {chosen.lender} · {chosen.name}{" "}
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          className="h-auto px-0"
+          onClick={() => setOpen(true)}
+        >
+          Change
+        </Button>
+      </p>
+    )
+  }
   const options: Record<string, string> = Object.fromEntries(
     products.map((p) => [
       p.id,
@@ -78,17 +97,56 @@ function ProductPicker({
 }
 
 /**
- * New deal: paste a Rightmove link + pick finance → analysed deal (option A),
- * or enter details manually (option B, also the fallback when a listing can't be read).
+ * Analyse a property: paste a Rightmove link → imported deal (option A), or
+ * enter details manually (option B, also the fallback when a listing can't be read).
  */
+/** Card on the full page; bare inside the + sheet, which supplies its own title. */
+function Panel({
+  variant,
+  title,
+  description,
+  showTitle = true,
+  children,
+}: {
+  variant: "page" | "sheet"
+  title: string
+  description: string
+  showTitle?: boolean
+  children: React.ReactNode
+}) {
+  if (variant === "sheet") {
+    return (
+      <section className="flex flex-col gap-4">
+        {showTitle ? <h3 className="font-medium">{title}</h3> : null}
+        <p className="text-sm text-muted-foreground">{description}</p>
+        {children}
+      </section>
+    )
+  }
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">{children}</CardContent>
+    </Card>
+  )
+}
+
 export function NewDealFlow({
   products,
   defaultProductId,
   initialUrl,
+  variant = "page",
+  onDone,
 }: {
   products: FinanceProduct[]
   defaultProductId: string | null
   initialUrl?: string
+  variant?: "page" | "sheet"
+  /** Called just before navigating to the new (or existing) deal. */
+  onDone?: () => void
 }) {
   const router = useRouter()
   const [mode, setMode] = useState<"link" | "manual">("link")
@@ -109,10 +167,11 @@ export function NewDealFlow({
           result.message ??
             (result.existing
               ? "Opened the existing deal"
-              : "Analysed. Check your offer price, refurb cost and end value.")
+              : "Imported. Check your offer price, refurb cost and end value.")
         )
         // The page segment starts below the shared deal summary. Explicitly
         // target the document top instead of Next's automatic segment scroll.
+        onDone?.()
         router.push(`/deals/${result.dealId}#top` as Route)
         return
       }
@@ -123,101 +182,92 @@ export function NewDealFlow({
   return (
     <div className="flex flex-col gap-4">
       {mode === "link" ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Add from Rightmove</CardTitle>
-            <CardDescription>
-              Paste a listing link and choose your finance. We&apos;ll read the
-              listing and run the numbers with your presets.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                analyse()
-              }}
-            >
-              <FieldGroup>
-                <FormField id="new-url" label="Rightmove link">
-                  <InputGroup>
-                    <InputGroupAddon>
-                      <LinkIcon aria-hidden />
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      id="new-url"
-                      type="url"
-                      inputMode="url"
-                      autoComplete="off"
-                      placeholder="https://www.rightmove.co.uk/properties/…"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                      autoFocus={!initialUrl}
-                      required
-                    />
-                  </InputGroup>
-                </FormField>
-                <ProductPicker
-                  products={products}
-                  value={productId}
-                  onChange={setProductId}
-                />
-                <Button
-                  type="submit"
-                  disabled={pending || !url.trim()}
-                  className="max-sm:w-full sm:self-start"
-                >
-                  {pending ? <Spinner /> : <SparklesIcon aria-hidden />}
-                  {pending ? "Reading the listing…" : "Analyse"}
-                </Button>
-                <p aria-live="polite" className="sr-only">
-                  {pending ? "Reading the listing" : ""}
-                </p>
-              </FieldGroup>
-            </form>
-          </CardContent>
-        </Card>
+        <Panel
+          variant={variant}
+          showTitle={false}
+          title="Analyse a property"
+          description="Turn a listing into an investment analysis. We'll import the details for you to review, then you set your numbers."
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              analyse()
+            }}
+          >
+            <FieldGroup>
+              <FormField id="new-url" label="Rightmove property URL">
+                <InputGroup>
+                  <InputGroupAddon>
+                    <LinkIcon aria-hidden />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="new-url"
+                    type="url"
+                    inputMode="url"
+                    autoComplete="off"
+                    placeholder="Paste a Rightmove property URL"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    autoFocus={!initialUrl}
+                    required
+                  />
+                </InputGroup>
+              </FormField>
+              <ProductPicker
+                products={products}
+                value={productId}
+                onChange={setProductId}
+              />
+              <Button
+                type="submit"
+                disabled={pending || !url.trim()}
+                className="max-sm:w-full sm:self-start"
+              >
+                {pending ? <Spinner /> : <DownloadIcon aria-hidden />}
+                {pending ? "Importing property…" : "Import property"}
+              </Button>
+              <p aria-live="polite" className="sr-only">
+                {pending ? "Importing property" : ""}
+              </p>
+            </FieldGroup>
+          </form>
+        </Panel>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Enter details manually</CardTitle>
-            <CardDescription>
-              Everything else is worked out from your presets.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {fallback ? (
-              <Alert className="border-warning/50">
-                <CircleAlertIcon className="text-warning-foreground" />
-                <AlertDescription>{fallback.message}</AlertDescription>
-              </Alert>
-            ) : null}
-            <ProductPicker
-              products={products}
-              value={productId}
-              onChange={setProductId}
-            />
-            <DealDetailsForm
-              key={fallback ? "fallback" : "blank"}
-              initial={
-                fallback?.prefill ?? { ...EMPTY_DETAILS, listingUrl: url }
-              }
-              submitLabel="Create deal"
-              onSubmit={async (details) => {
-                const result = await createDealManually({
-                  details,
-                  productId: chosenProduct,
-                })
-                if (!result.ok) return result
-                toast.success(
-                  "Deal created. Check your offer price, refurb cost and end value."
-                )
-                router.push(`/deals/${result.data.id}#top` as Route)
-                return { ok: true }
-              }}
-            />
-          </CardContent>
-        </Card>
+        <Panel
+          variant={variant}
+          title="Enter details manually"
+          description="Everything else is worked out from your presets."
+        >
+          {fallback ? (
+            <Alert className="border-warning/50">
+              <CircleAlertIcon className="text-warning-foreground" />
+              <AlertDescription>{fallback.message}</AlertDescription>
+            </Alert>
+          ) : null}
+          <ProductPicker
+            products={products}
+            value={productId}
+            onChange={setProductId}
+          />
+          <DealDetailsForm
+            key={fallback ? "fallback" : "blank"}
+            initial={fallback?.prefill ?? { ...EMPTY_DETAILS, listingUrl: url }}
+            submitLabel="Create deal"
+            onSubmit={async (details) => {
+              const result = await createDealManually({
+                details,
+                productId: chosenProduct,
+              })
+              if (!result.ok) return result
+              toast.success(
+                "Deal created. Check your offer price, refurb cost and end value."
+              )
+              onDone?.()
+              router.push(`/deals/${result.data.id}#top` as Route)
+              return { ok: true }
+            }}
+          />
+        </Panel>
       )}
       <Button
         variant="link"

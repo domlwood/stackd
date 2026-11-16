@@ -23,7 +23,7 @@ export type View = { kind: "agreed" } | { kind: "user"; userId: string }
 
 export type Provenance = {
   origin: "default" | "agreed" | "proposal"
-  /** Default computed from other inputs (an estimate), e.g. rent from end value. */
+  /** Default computed from other inputs (rent from end value, tax from the plan). */
   derived?: boolean
   /** The Agreed value (or default if none agreed), for diffing. */
   agreedValue: unknown
@@ -137,6 +137,8 @@ export function resolveInputs(args: {
     const value = definition.derive(values, defaults)
     const agreedValue = definition.derive(agreedValues, defaults)
     values[key] = value
+    // Later derived inputs may depend on this one (tax treatment ← plan).
+    agreedValues[key] = agreedValue
     provenance[key] = {
       origin: "default",
       derived: true,

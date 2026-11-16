@@ -26,7 +26,7 @@ afterEach(() => {
 
 describe("capture navigation", () => {
   it.each([false, true])(
-    "opens the top of the deal after analysing (existing: %s)",
+    "opens the top of the deal after importing (existing: %s)",
     async (existing) => {
       captureFromLink.mockResolvedValue({
         ok: true,
@@ -34,10 +34,10 @@ describe("capture navigation", () => {
         existing,
       })
       render(<NewDealFlow products={[]} defaultProductId={null} />)
-      fireEvent.change(screen.getByLabelText("Rightmove link"), {
+      fireEvent.change(screen.getByLabelText("Rightmove property URL"), {
         target: { value: "https://www.rightmove.co.uk/properties/95063484" },
       })
-      fireEvent.click(screen.getByRole("button", { name: "Analyse" }))
+      fireEvent.click(screen.getByRole("button", { name: "Import property" }))
       await waitFor(() =>
         expect(push).toHaveBeenCalledWith("/deals/example-deal#top")
       )

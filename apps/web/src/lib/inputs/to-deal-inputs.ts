@@ -3,6 +3,7 @@ import type {
   DealInputs,
   Pence,
   Ratio,
+  Strategy,
   TaxMode,
 } from "@/lib/calc/types"
 import { refurbItemCostKey } from "./registry"
@@ -29,6 +30,7 @@ export function toDealInputs(
     purchaseProductId: (v["purchaseFinance.product"] as string | null) ?? null,
     refiProductId: (v["keep.product"] as string | null) ?? null,
     inputs: {
+      plan: { strategy: v["plan.strategy"] as Strategy },
       buyer: {
         entity: v["buyer.entity"] as BuyerEntity,
         additionalProperty: bool("buyer.additionalProperty"),

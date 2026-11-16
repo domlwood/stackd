@@ -61,7 +61,7 @@ export async function createDeal(
     .insert({
       ...detailsToRow(parsed.data),
       workspace_id: session.workspaceId,
-      status: "analysing",
+      status: "active",
     })
     .select("id")
     .single()
@@ -111,6 +111,25 @@ export async function changeDealStatus(input: unknown): Promise<ActionResult> {
       status: parsed.data.status,
       passed_reason:
         parsed.data.status === "passed" ? (parsed.data.reason ?? null) : null,
+    })
+    .eq("id", parsed.data.dealId)
+  if (error) return fromDbError(error)
+  revalidateDeal(parsed.data.dealId)
+  return { ok: true }
+}
+
+const archiveSchema = z.object({ dealId: idSchema, archived: z.boolean() })
+
+/** Archive hides a deal from the Deals page; restoring brings it back. */
+export async function setDealArchived(input: unknown): Promise<ActionResult> {
+  const parsed = archiveSchema.safeParse(input)
+  if (!parsed.success) return fail("That deal doesn't exist.")
+  await requireSession()
+  const supabase = await createSupabaseServerClient()
+  const { error } = await supabase
+    .from("deal")
+    .update({
+      archived_at: parsed.data.archived ? new Date().toISOString() : null,
     })
     .eq("id", parsed.data.dealId)
   if (error) return fromDbError(error)

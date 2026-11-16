@@ -61,7 +61,7 @@ export const getDealWorkspace = cache(
       ruleRecords,
       settings,
       members,
-      freeBuyingPowerPence: portfolio.freeExcluding(dealId),
+      freeBuyingPowerPence: portfolio.freeBuyingPowerPence,
       today: todayIso(),
       currentUserId: session.userId,
     }

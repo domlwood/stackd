@@ -10,6 +10,8 @@ export type Deal = {
   status: DealStatus
   passedReason: string | null
   statusChangedAt: string
+  /** Hidden from the Deals page (sold, or not interested); null when not archived. */
+  archivedAt: string | null
   addressLine: string
   postcode: string | null
   lat: number | null
@@ -47,7 +49,7 @@ export type DealWorkspaceData = {
   ruleRecords: RuleSetRecord[]
   settings: WorkspaceSettings
   members: Member[]
-  /** Free buying power excluding this deal's own commitment. */
+  /** Buying power (total in fund pots) this deal's affordability is judged against. */
   freeBuyingPowerPence: number
   today: string
   currentUserId: string

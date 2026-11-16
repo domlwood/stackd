@@ -4,7 +4,7 @@ import { inputDef, refurbItemCostKey } from "@/lib/inputs/registry"
 import type { Database, Json } from "@/lib/supabase/database.types"
 
 type Admin = SupabaseClient<Database>
-type Status = "lead" | "analysing" | "viewing" | "offer" | "accepted" | "passed"
+type Status = "active" | "passed" | "bought"
 
 type SeedInput = { key: string; value: unknown; source?: string; by: "a" | "b" }
 type SeedDeal = {
@@ -43,7 +43,7 @@ export const SAMPLE_DEALS: SeedDeal[] = [
     deal: {
       address_line: "14 Victoria Road, Leeds",
       postcode: "LS6 1AB",
-      status: "analysing",
+      status: "active",
       property_type: "terraced",
       tenure: "freehold",
       beds: 3,
@@ -106,7 +106,7 @@ export const SAMPLE_DEALS: SeedDeal[] = [
     deal: {
       address_line: "Flat 3, 27 Harbour Street, Hull",
       postcode: "HU1 2AA",
-      status: "lead",
+      status: "active",
       property_type: "flat",
       tenure: "leasehold",
       beds: 2,
@@ -154,7 +154,7 @@ export const SAMPLE_DEALS: SeedDeal[] = [
     deal: {
       address_line: "8 Elm Grove, Sheffield",
       postcode: "S7 1CD",
-      status: "offer",
+      status: "active",
       property_type: "semi_detached",
       tenure: "freehold",
       beds: 3,

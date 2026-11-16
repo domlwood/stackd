@@ -26,25 +26,27 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10)
   await expect(page.getByText("LS6 1AB")).toBeVisible()
 
-  // Both pipeline layouts must open above the shared summary on phones too.
-  for (const layout of ["Board", "Table"]) {
-    await page.goto("/")
-    await page.getByLabel(layout, { exact: true }).click()
-    // The board scrolls inside itself; the page must never scroll sideways.
-    expect(
-      await page.evaluate(
-        () =>
-          document.documentElement.scrollWidth <=
-          document.documentElement.clientWidth
-      )
-    ).toBe(true)
-    await page.getByRole("link", { name: address }).first().click()
-    await expect(page).toHaveURL(/\/deals\/[^/]+#top$/)
-    await expect
-      .poll(() => page.evaluate(() => window.scrollY))
-      .toBeLessThan(10)
-    await expect(page.getByRole("heading", { name: address })).toBeInViewport()
-  }
+  // A new deal has no refurb or end value yet: it shows as "Needs details",
+  // which the default Deals view keeps (it only hides "Doesn't stack").
+  await page.goto("/")
+  await expect(
+    page
+      .getByRole("listitem")
+      .filter({ hasText: address })
+      .getByText("Needs details")
+  ).toBeVisible()
+  // The grid must never make the page scroll sideways.
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <=
+        document.documentElement.clientWidth
+    )
+  ).toBe(true)
+  await page.getByRole("link", { name: address }).first().click()
+  await expect(page).toHaveURL(/\/deals\/[^/]+#top$/)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10)
+  await expect(page.getByRole("heading", { name: address })).toBeInViewport()
 
   // Refurb cost and end value are inline and saved on Enter.
   await page.getByLabel("Refurb cost").fill("25000")
@@ -80,9 +82,11 @@ test("a non-Rightmove link falls back to manual entry with the link kept", async
 }) => {
   await page.goto("/deals/new")
   await page
-    .getByLabel("Rightmove link", { exact: true })
+    .getByLabel("Rightmove property URL", { exact: true })
     .fill("https://www.example.com/some-house")
-  await page.getByRole("button", { name: "Analyse", exact: true }).click()
+  await page
+    .getByRole("button", { name: "Import property", exact: true })
+    .click()
   // Generous timeout: the first call compiles the server action in dev.
   await expect(
     page.getByText("That doesn't look like a Rightmove property link.")

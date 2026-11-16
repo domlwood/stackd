@@ -2,7 +2,13 @@ import type { FlipResult } from "./flip"
 import type { KeepResult } from "./keep"
 import type { BuyBox, Ratio } from "./types"
 
-export type VerdictLevel = "stacks" | "marginal" | "doesnt_stack"
+/**
+ * "needs_details" is never produced by the engine: it's applied after the
+ * analysis when key numbers are still placeholders (features/analysis/build).
+ * A future auto-populated feed could add a similar "needs_review" level.
+ */
+export type VerdictLevel =
+  "stacks" | "marginal" | "doesnt_stack" | "needs_details"
 
 export type Criterion = {
   exit: "flip" | "keep"
@@ -116,7 +122,7 @@ export function verdict(
           (exit) => `${exit === "flip" ? "Flip" : "Keep"} meets your buy box`
         )
       : criteria.filter((c) => !c.pass).map((c) => `Misses: ${c.label}`)
-  if (!keep.available) reasons.push(keep.reason)
+  if (!keep.available && !keep.notInPlan) reasons.push(keep.reason)
 
   return { level, criteria, reasons }
 }
