@@ -47,6 +47,23 @@ export const listActiveProducts = cache(async (): Promise<FinanceProduct[]> => {
   return data.map(({ erc_band, ...row }) => rowToProduct(row, erc_band))
 })
 
+/**
+ * Every product, archived included (a deal may still reference an archived
+ * one), without "used by" lists: no portfolio analysis, so it's cheap enough
+ * for the deal page on the Workers CPU budget.
+ */
+export const listAllProducts = cache(async (): Promise<FinanceProduct[]> => {
+  const session = await requireSession()
+  const supabase = await createSupabaseServerClient()
+  const { data, error } = await supabase
+    .from("finance_product")
+    .select("*, erc_band(ordinal, from_month, to_month, pct)")
+    .eq("workspace_id", session.workspaceId)
+  if (error)
+    throw new Error(`Could not load finance products: ${error.message}`)
+  return data.map(({ erc_band, ...row }) => rowToProduct(row, erc_band))
+})
+
 export const listFinanceProducts = cache(
   async ({
     includeArchived = false,

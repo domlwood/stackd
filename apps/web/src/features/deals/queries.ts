@@ -9,7 +9,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { listTaxRuleRecords } from "@/features/settings/tax-rules"
 import { getSettings, listMembers } from "@/features/workspace/queries"
 import { rowToDeal, rowToStoredInput } from "./mappers"
-import { loadPortfolio, todayIso } from "./portfolio"
+import { computeBuyingPower } from "@/features/finance/rules"
+import { listAllProducts, listFundPots } from "@/features/finance/queries"
+import { todayIso } from "./portfolio"
 import type { DealWorkspaceData } from "./types"
 
 /** Everything the deal page needs; the client runs the engine for instant recalculation. */
@@ -23,7 +25,8 @@ export const getDealWorkspace = cache(
       dealRes,
       inputsRes,
       refurbRes,
-      portfolio,
+      products,
+      pots,
       settings,
       ruleRecords,
       members,
@@ -36,7 +39,9 @@ export const getDealWorkspace = cache(
         .eq("deal_id", dealId)
         .order("ordinal")
         .order("created_at"),
-      loadPortfolio(),
+      // Not the whole portfolio: that would analyse every deal on each deal page.
+      listAllProducts(),
+      listFundPots(),
       getSettings(),
       listTaxRuleRecords(),
       listMembers(),
@@ -57,11 +62,11 @@ export const getDealWorkspace = cache(
         ordinal: l.ordinal,
       })),
       // Active products, plus archived ones this deal still references.
-      products: portfolio.products,
+      products,
       ruleRecords,
       settings,
       members,
-      freeBuyingPowerPence: portfolio.freeBuyingPowerPence,
+      freeBuyingPowerPence: computeBuyingPower(pots, []).freePence,
       today: todayIso(),
       currentUserId: session.userId,
     }
