@@ -12,12 +12,12 @@ import {
 } from "@workspace/ui/components/card"
 
 import { formatDate } from "@/lib/format/date"
-import { useDeal } from "@/features/analysis/components/deal-provider"
+import { useDealBase } from "@/features/analysis/components/deal-provider"
 import { updateDealDetails } from "../actions"
 import { DealDetailsForm, dealToDetails } from "./deal-details-form"
 
 export function ListingDetails() {
-  const { data } = useDeal()
+  const { data } = useDealBase()
   const { deal } = data
   return (
     <div className="flex flex-col gap-4">

@@ -129,6 +129,7 @@ export const loadPortfolio = cache(async (): Promise<Portfolio> => {
       today,
       view: { kind: "agreed" },
       freeBuyingPowerPence: free,
+      withSensitivity: false,
     })
 
   // Pass 1: cash required per deal → commitments.

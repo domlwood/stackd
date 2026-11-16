@@ -45,6 +45,8 @@ export type CalcProduct = {
   feeAddedToLoan: boolean
   brokerFeePence: Pence
   valuationFeePence: Pence
+  /** Lender cashback paid on completion. */
+  cashbackPence: Pence
   maxLtv: Ratio | null
   monthlyRate: Ratio | null
   interestMode: "retained" | "serviced" | "rolled" | null

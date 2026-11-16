@@ -584,6 +584,13 @@ export function ProductSheet({
                     name="valuationFeePence"
                     label="Valuation fee"
                   />
+                  <NumberField
+                    kind="money"
+                    control={control}
+                    errors={errors}
+                    name="cashbackPence"
+                    label="Cashback on completion"
+                  />
                 </div>
                 <Controller
                   control={control}

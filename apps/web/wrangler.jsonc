@@ -17,6 +17,8 @@
   "keep_vars": true,
   "vars": {
     "INGEST_RIGHTMOVE_ENABLED": "true",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_D0TV304dzR_AhePEgmrI7Q_wbNjNTba",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://ozpcbbkmvolzvyfcjtgk.supabase.co",
     "NODE_VERSION": "22.22.2"
-  },
+  }
 }

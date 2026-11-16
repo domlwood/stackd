@@ -21,13 +21,13 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 
 import { ConfirmDialog } from "@/components/blocks/confirm-dialog"
-import { useDeal } from "@/features/analysis/components/deal-provider"
+import { useDealBase } from "@/features/analysis/components/deal-provider"
 import { deleteDeal } from "../actions"
 import { PROPERTY_TYPE_LABELS } from "../schemas"
 import { StatusControl } from "./status-control"
 
 export function DealHeader() {
-  const { data } = useDeal()
+  const { data } = useDealBase()
   const { deal } = data
   const router = useRouter()
   const [confirm, setConfirm] = useState(false)

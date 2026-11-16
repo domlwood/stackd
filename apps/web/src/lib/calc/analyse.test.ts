@@ -189,6 +189,42 @@ describe("keep edge cases", () => {
     expect(withErc.flip.profitPence).toBeLessThan(without.flip.profitPence)
   })
 
+  it("purchase cashback nets off cash invested on both exits, pound for pound", () => {
+    const ctx = { ...CTX, purchaseProduct: RESI }
+    const plain = analyseCore(INPUTS, ctx)
+    const cashback = analyseCore(INPUTS, {
+      ...ctx,
+      purchaseProduct: { ...RESI, cashbackPence: 50_000 },
+    })
+    expect(cashback.flip.cashInvestedPence).toBe(
+      plain.flip.cashInvestedPence - 50_000
+    )
+    expect(cashback.flip.profitPence).toBe(plain.flip.profitPence + 50_000)
+    expect(cashback.cashRequired.value).toBe(plain.cashRequired.value - 50_000)
+    expect(
+      cashback.flip.figures.cashInvested.children?.find(
+        (c) => c.key === "lenderCashback"
+      )?.value
+    ).toBe(-50_000)
+    if (cashback.keep.available && plain.keep.available)
+      expect(cashback.keep.moneyLeftInPence).toBe(
+        plain.keep.moneyLeftInPence - 50_000
+      )
+  })
+
+  it("refinance cashback increases cash released", () => {
+    const plain = analyseCore(INPUTS, CTX)
+    const cashback = analyseCore(INPUTS, {
+      ...CTX,
+      refiProduct: { ...BTL, cashbackPence: 25_000 },
+    })
+    expect(plain.keep.available && cashback.keep.available).toBe(true)
+    if (plain.keep.available && cashback.keep.available)
+      expect(cashback.keep.moneyLeftInPence).toBe(
+        plain.keep.moneyLeftInPence - 25_000
+      )
+  })
+
   it("warns when the plan outlasts the bridge term", () => {
     const a = analyseCore(
       { ...INPUTS, refurb: { ...INPUTS.refurb, months: 10 } },

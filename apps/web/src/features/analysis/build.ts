@@ -1,6 +1,7 @@
 import { ZodError } from "zod"
 
 import { analyseDeal, type FullDealAnalysis } from "@/lib/calc"
+import { analyseCore } from "@/lib/calc/analyse"
 import {
   MissingTaxRulesError,
   selectTaxRules,
@@ -57,6 +58,11 @@ export function buildAnalysis(args: {
   today: string
   view: View
   freeBuyingPowerPence?: number | null
+  /**
+   * Run the 8-scenario sensitivity grid (default true). Server-side summaries
+   * skip it: it multiplies engine work ~8x and only the deal page shows it.
+   */
+  withSensitivity?: boolean
 }): BuiltAnalysis {
   const resolved = resolveInputs({
     stored: args.stored,
@@ -78,13 +84,17 @@ export function buildAnalysis(args: {
       args.ruleRecords,
       inputs.purchase.completionDate
     )
-    const analysis = analyseDeal(inputs, {
+    const ctx = {
       purchaseProduct,
       refiProduct,
       rules,
       buyBox: args.settings.buyBox,
       freeBuyingPowerPence: args.freeBuyingPowerPence,
-    })
+    }
+    const analysis: FullDealAnalysis =
+      args.withSensitivity === false
+        ? { ...analyseCore(inputs, ctx), sensitivity: [] }
+        : analyseDeal(inputs, ctx)
     return {
       ok: true,
       resolved,

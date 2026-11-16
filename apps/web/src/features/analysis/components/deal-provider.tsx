@@ -7,6 +7,7 @@ import {
   useMemo,
   useOptimistic,
   useState,
+  useSyncExternalStore,
   useTransition,
   type ReactNode,
 } from "react"
@@ -70,7 +71,27 @@ type DealContextValue = {
   memberName: (userId: string | null) => string
 }
 
-const DealContext = createContext<DealContextValue | null>(null)
+/** Everything except the analysis: safe to read during the server render. */
+export type DealBaseValue = Omit<DealContextValue, "built">
+
+const DealContext = createContext<
+  (DealBaseValue & { built: BuiltAnalysis | null }) | null
+>(null)
+
+const noopSubscribe = () => () => {}
+
+/**
+ * False during the server render and hydration, true afterwards. The engine
+ * runs dozens of scenarios per deal; doing that in the Worker's server render
+ * blows its CPU budget, so the browser does it instead.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  )
+}
 
 /**
  * Holds a deal's data, applies edits optimistically and re-runs the pure engine
@@ -87,22 +108,25 @@ export function DealProvider({
   const [pending, startTransition] = useTransition()
   const [activeInputKey, setActiveInputKey] = useState<string | null>(null)
   const view: View = { kind: "agreed" }
+  const hydrated = useHydrated()
 
   const built = useMemo(
     () =>
-      buildAnalysis({
-        deal: data.deal,
-        stored,
-        refurbLines: data.refurbLines,
-        products: data.products,
-        ruleRecords: data.ruleRecords,
-        settings: data.settings,
-        today: data.today,
-        view,
-        freeBuyingPowerPence: data.freeBuyingPowerPence,
-      }),
+      hydrated
+        ? buildAnalysis({
+            deal: data.deal,
+            stored,
+            refurbLines: data.refurbLines,
+            products: data.products,
+            ruleRecords: data.ruleRecords,
+            settings: data.settings,
+            today: data.today,
+            view,
+            freeBuyingPowerPence: data.freeBuyingPowerPence,
+          })
+        : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- view is constant until phase 6
-    [data, stored]
+    [hydrated, data, stored]
   )
 
   const setInput = useCallback(
@@ -168,8 +192,35 @@ export function DealProvider({
   return <DealContext.Provider value={value}>{children}</DealContext.Provider>
 }
 
-export function useDeal(): DealContextValue {
+function useDealContext() {
   const ctx = useContext(DealContext)
   if (!ctx) throw new Error("useDeal must be used inside <DealProvider>")
   return ctx
+}
+
+/** Deal data and actions without the analysis; works in the server render. */
+export function useDealBase(): DealBaseValue {
+  return useDealContext()
+}
+
+/** Full context including the analysis. Only call inside <AnalysisReady>. */
+export function useDeal(): DealContextValue {
+  const ctx = useDealContext()
+  const { built } = ctx
+  if (!built)
+    throw new Error(
+      "useDeal() needs the analysis: render inside <AnalysisReady>"
+    )
+  return { ...ctx, built }
+}
+
+/** Renders children once the analysis has run in the browser; `fallback` until then. */
+export function AnalysisReady({
+  children,
+  fallback = null,
+}: {
+  children: ReactNode
+  fallback?: ReactNode
+}) {
+  return useDealContext().built ? children : fallback
 }

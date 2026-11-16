@@ -55,6 +55,7 @@ export function DealCard({
         <div className="min-w-0 flex-1">
           <Link
             href={`/deals/${deal.id}#top` as Route}
+            prefetch={false}
             className="line-clamp-2 text-sm leading-snug font-medium after:absolute after:inset-0 focus-visible:outline-none"
           >
             {deal.addressLine}

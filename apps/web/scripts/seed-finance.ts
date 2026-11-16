@@ -13,7 +13,30 @@ type Admin = SupabaseClient<Database>
 const DAY_MS = 86_400_000
 const STALE_SAMPLE_AGE_DAYS = 120
 
-/** Sample terms only — lenders are placeholders so nobody mistakes them for real quotes. */
+/**
+ * Nationwide first-time buyer 2-year tracker, fee-free, 95% LTV. Bank Rate
+ * (4.00%) + 1.24%. No ERC, so a 9-month exit costs only interest. Kept in step
+ * with supabase/migrations/20261120000000_nationwide_ftb_tracker.sql.
+ */
+export const NATIONWIDE_FTB_TRACKER_95: FinanceProductInput = {
+  ...emptyProduct("residential"),
+  lender: "Nationwide",
+  name: "FTB 2-year tracker, fee-free, 95% LTV",
+  rate: 0.0524,
+  rateType: "tracker",
+  fixedMonths: null,
+  termMonths: 300,
+  repayment: "repayment",
+  maxLtv: 0.95,
+  arrangementFeePence: 0,
+  valuationFeePence: 0,
+  cashbackPence: 50_000,
+  ercBands: [],
+  notes:
+    "Bank Rate 4.00% + 1.24% for 2 years. No fee, no ERC, no exit fee, free standard valuation. £500 cashback on completion. First-time buyers only (no mortgage in the last 3 years). New-build flats capped at 85% LTV. Terms from Nationwide's intermediary guide effective 10 Nov 2026; confirm the current ESIS before applying.",
+}
+
+/** Placeholder lenders for the other routes, so nobody mistakes them for real quotes. */
 export const SAMPLE_PRODUCTS: {
   product: FinanceProductInput
   reviewedDaysAgo: number
@@ -39,24 +62,10 @@ export const SAMPLE_PRODUCTS: {
     },
   },
   {
-    reviewedDaysAgo: 10,
-    product: {
-      ...emptyProduct("residential"),
-      lender: "Example Building Society",
-      name: "2-year fix, 75% LTV",
-      rate: 0.0449,
-      rateType: "fixed",
-      fixedMonths: 24,
-      termMonths: 300,
-      repayment: "repayment",
-      maxLtv: 0.75,
-      arrangementFeePence: 99_900,
-      valuationFeePence: 0,
-      ercBands: [
-        { fromMonth: 0, toMonth: 12, pct: 0.03 },
-        { fromMonth: 12, toMonth: 24, pct: 0.02 },
-      ],
-    },
+    // Real terms (Nationwide intermediary guide effective 10 Nov 2026, checked
+    // 15 Nov 2026): the cheapest route for a first-time buyer's short hold.
+    reviewedDaysAgo: 1,
+    product: NATIONWIDE_FTB_TRACKER_95,
   },
   {
     reviewedDaysAgo: 30,

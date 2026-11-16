@@ -302,6 +302,7 @@ export type Database = {
           arrangement_fee_pct: number
           arrangement_fee_pence: number
           broker_fee_pence: number
+          cashback_pence: number
           created_at: string
           created_by: string | null
           exit_fee_pct: number | null
@@ -334,6 +335,7 @@ export type Database = {
           arrangement_fee_pct?: number
           arrangement_fee_pence?: number
           broker_fee_pence?: number
+          cashback_pence?: number
           created_at?: string
           created_by?: string | null
           exit_fee_pct?: number | null
@@ -366,6 +368,7 @@ export type Database = {
           arrangement_fee_pct?: number
           arrangement_fee_pence?: number
           broker_fee_pence?: number
+          cashback_pence?: number
           created_at?: string
           created_by?: string | null
           exit_fee_pct?: number | null

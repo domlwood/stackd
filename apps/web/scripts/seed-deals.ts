@@ -35,7 +35,7 @@ type SeedDeal = {
 
 const BRIDGE = "Example Bridging Ltd · Light refurb bridge"
 const BTL = "Example BTL Lender · 5-year fix, Ltd company"
-const RESI = "Example Building Society · 2-year fix, 75% LTV"
+const RESI = "Nationwide · FTB 2-year tracker, fee-free, 95% LTV"
 const CASH = "Own funds · Cash purchase"
 
 export const SAMPLE_DEALS: SeedDeal[] = [

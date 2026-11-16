@@ -66,6 +66,8 @@ export type PurchaseFinance = {
   netAdvancePence: Pence
   /** Fees paid in cash at completion (arrangement if not added, broker, valuation). */
   upfrontCashFeesPence: Pence
+  /** Lender cashback received on completion. */
+  cashbackPence: Pence
   /** Monthly finance cost paid in cash while holding (serviced interest / mortgage payment). */
   monthlyCashPaymentPence: Pence
   figure: Figure
@@ -91,6 +93,7 @@ export function purchaseFinance(
       retainedMonths: 0,
       netAdvancePence: 0,
       upfrontCashFeesPence: 0,
+      cashbackPence: 0,
       monthlyCashPaymentPence: 0,
       figure: {
         key: "purchaseFinance.netAdvance",
@@ -127,6 +130,7 @@ export function purchaseFinance(
       retainedMonths,
       netAdvancePence,
       upfrontCashFeesPence: otherFees + (product.feeAddedToLoan ? 0 : fee),
+      cashbackPence: product.cashbackPence,
       monthlyCashPaymentPence,
       figure: {
         key: "purchaseFinance.netAdvance",
@@ -183,6 +187,7 @@ export function purchaseFinance(
     retainedMonths: 0,
     netAdvancePence: grossLoanPence,
     upfrontCashFeesPence: otherFees + (product.feeAddedToLoan ? 0 : fee),
+    cashbackPence: product.cashbackPence,
     monthlyCashPaymentPence,
     figure: {
       key: "purchaseFinance.netAdvance",

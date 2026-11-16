@@ -58,6 +58,7 @@ function cashInvested(
     sdlt: Figure
     acquisition: Figure
     fees: Figure
+    cashback: Figure
     refurb: Figure
   },
   inputs: DealInputs,
@@ -74,6 +75,7 @@ function cashInvested(
     parts.sdlt,
     parts.acquisition,
     parts.fees,
+    parts.cashback,
     parts.refurb,
     holding.figure,
   ].filter((c) => c.value !== 0)
@@ -83,7 +85,7 @@ function cashInvested(
     value: sum(children.map((c) => c.value)),
     unit: "pence",
     formula:
-      "Deposit + stamp duty + buying costs + lender fees + refurb + holding costs",
+      "Deposit + stamp duty + buying costs + lender fees − lender cashback + refurb + holding costs",
     children,
   }
 }
@@ -160,6 +162,13 @@ export function analyseCore(
       key: "lenderFees",
       label: "Lender fees paid in cash",
       value: finance.upfrontCashFeesPence,
+      unit: "pence" as const,
+      inputs: ["purchaseFinance.product"],
+    },
+    cashback: {
+      key: "lenderCashback",
+      label: "Lender cashback on completion",
+      value: -finance.cashbackPence,
       unit: "pence" as const,
       inputs: ["purchaseFinance.product"],
     },

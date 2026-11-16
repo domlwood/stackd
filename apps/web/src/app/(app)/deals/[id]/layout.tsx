@@ -1,7 +1,12 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
-import { DealProvider } from "@/features/analysis/components/deal-provider"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+
+import {
+  AnalysisReady,
+  DealProvider,
+} from "@/features/analysis/components/deal-provider"
 import { InputSheet } from "@/features/analysis/components/input-sheet"
 import { KeyNumbers } from "@/features/analysis/components/key-numbers"
 import { MetricStrip } from "@/features/analysis/components/metric-strip"
@@ -29,8 +34,21 @@ export default async function DealLayout({
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
         <DealHeader />
         <ListingSummary deal={data.deal} />
-        <KeyNumbers />
-        <MetricStrip />
+        <AnalysisReady
+          fallback={
+            <div
+              aria-busy="true"
+              aria-label="Running the numbers"
+              className="flex flex-col gap-4"
+            >
+              <Skeleton className="h-40" />
+              <Skeleton className="h-16" />
+            </div>
+          }
+        >
+          <KeyNumbers />
+          <MetricStrip />
+        </AnalysisReady>
         <DealTabs dealId={id} />
         {children}
       </div>

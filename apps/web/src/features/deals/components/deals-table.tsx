@@ -41,6 +41,7 @@ const COLUMNS: ColumnDef<PortfolioDeal>[] = [
     cell: ({ row }) => (
       <Link
         href={`/deals/${row.original.id}#top` as Route}
+        prefetch={false}
         className="font-medium hover:underline"
       >
         {row.original.addressLine}

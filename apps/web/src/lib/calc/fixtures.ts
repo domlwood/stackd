@@ -22,6 +22,7 @@ const base: CalcProduct = {
   feeAddedToLoan: false,
   brokerFeePence: 0,
   valuationFeePence: 0,
+  cashbackPence: 0,
   maxLtv: null,
   monthlyRate: null,
   interestMode: null,

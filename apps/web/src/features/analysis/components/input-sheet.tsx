@@ -23,7 +23,7 @@ import { inputDef, type InputDef } from "@/lib/inputs/registry"
 import { PRODUCT_TYPE_LABELS } from "@/features/finance/schemas"
 import { defaultsSourceFor } from "../build"
 import { formatInputValue } from "../format"
-import { useDeal } from "./deal-provider"
+import { useDeal, useDealBase } from "./deal-provider"
 
 const NONE = "none"
 
@@ -38,7 +38,7 @@ function ValueEditor({
   onChange: (v: unknown) => void
   invalid: boolean
 }) {
-  const { data } = useDeal()
+  const { data } = useDealBase()
   const id = "input-value"
   switch (def.kind) {
     case "money":
@@ -124,7 +124,7 @@ function ValueEditor({
 
 /** Side sheet for one input: value, source, note, owner, and reset to default. */
 export function InputSheet() {
-  const { activeInputKey, openInput } = useDeal()
+  const { activeInputKey, openInput } = useDealBase()
   const def = activeInputKey ? inputDef(activeInputKey) : undefined
   return (
     <ResponsiveSheet

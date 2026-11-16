@@ -148,6 +148,8 @@ export const financeProductSchema = z
     feeAddedToLoan: z.boolean(),
     brokerFeePence: pence,
     valuationFeePence: pence,
+    /** Paid to the borrower on completion; nets off the cash a deal ties up. */
+    cashbackPence: pence,
     maxLtv: ratio.nullable(),
 
     rate: ratio.nullable(),
@@ -223,6 +225,7 @@ export function emptyProduct(type: ProductType): FinanceProductInput {
     feeAddedToLoan: false,
     brokerFeePence: 0,
     valuationFeePence: 0,
+    cashbackPence: 0,
     maxLtv: type === "cash" ? null : 0.75,
     rate: null,
     rateType: mortgage ? "fixed" : null,

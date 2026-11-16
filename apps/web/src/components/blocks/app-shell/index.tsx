@@ -46,7 +46,9 @@ export function AppShell({
         Skip to content
       </a>
       <AppSidebar user={user} workspaceName={workspaceName} />
-      <SidebarInset>
+      {/* min-w-0: a flex item defaults to min-width:auto and would grow to fit
+          wide content (the kanban board), scrolling the whole page sideways. */}
+      <SidebarInset className="min-w-0">
         <SiteHeader actions={headerActions} user={user} />
         <main
           id="main"

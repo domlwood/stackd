@@ -124,7 +124,8 @@ export function analyseKeep(args: {
     refi.valuationFeePence +
     inputs.keep.refinanceLegalPence
 
-  const cashReleasedPence = newLoanPence - cashFeesPence - redemption.totalPence
+  const cashReleasedPence =
+    newLoanPence - cashFeesPence + refi.cashbackPence - redemption.totalPence
   const moneyLeftInPence = cashInvested.value - cashReleasedPence
 
   const mortgagePaymentPence = monthlyPayment(
@@ -261,7 +262,8 @@ export function analyseKeep(args: {
     label: "Cash released on refinance",
     value: cashReleasedPence,
     unit: "pence",
-    formula: "New loan − refinance costs − purchase loan redemption",
+    formula:
+      "New loan − refinance costs + lender cashback − purchase loan redemption",
     children: [
       newLoan,
       {
@@ -271,6 +273,17 @@ export function analyseKeep(args: {
         unit: "pence",
         inputs: ["keep.refinanceLegal"],
       },
+      ...(refi.cashbackPence
+        ? [
+            {
+              key: "keep.refiCashback",
+              label: "Lender cashback",
+              value: refi.cashbackPence,
+              unit: "pence" as const,
+              inputs: ["keep.product"],
+            },
+          ]
+        : []),
       negate(redemption.figure),
     ],
   }
