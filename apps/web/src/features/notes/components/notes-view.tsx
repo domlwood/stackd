@@ -97,7 +97,7 @@ function NotesHeading({ id, count }: { id: string; count: number }) {
 function EmptyNotes() {
   return (
     <p className="text-sm text-muted-foreground">
-      Nothing yet. Share what you find with each other: details from the agent,
+      Nothing yet. Share details from the agent,
       questions, and comparable sales that back up the end value.
     </p>
   )
