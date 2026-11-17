@@ -127,7 +127,7 @@ export function MetricStrip() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-1">
+      <div className="grid grid-cols-2 gap-3">
         <Card size="sm" className="gap-2 px-3 sm:px-4">
           <div className="text-sm font-medium">
             Exit A · {built.inputs.plan.liveIn ? "Sale" : "Flip"}

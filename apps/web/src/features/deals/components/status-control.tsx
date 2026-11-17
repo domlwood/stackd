@@ -16,13 +16,12 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import { FormField } from "@/components/blocks/form-field"
-import { OptionSelect } from "@/components/blocks/option-select"
 import { changeDealStatus } from "../actions"
 import { DEAL_STATUS_LABELS, type DealStatus } from "../schemas"
 
 /**
- * Status picker. Moving to "passed" asks for a reason (stored for later learning).
- * Used on the deal page and on pipeline cards.
+ * Status changes (from the ⋮ menus on the deal and on cards). Moving to
+ * "passed" asks for a reason (stored for later learning).
  */
 export function useStatusChange(
   dealId: string,
@@ -111,33 +110,4 @@ export function useStatusChange(
   )
 
   return { request, pending, dialog }
-}
-
-export function StatusControl({
-  dealId,
-  status,
-}: {
-  dealId: string
-  status: DealStatus
-}) {
-  const [optimistic, setOptimistic] = useState(status)
-  const [prev, setPrev] = useState(status)
-  if (prev !== status) {
-    setPrev(status)
-    setOptimistic(status)
-  }
-  const { request, dialog } = useStatusChange(dealId, setOptimistic)
-  return (
-    <>
-      <div className="w-36">
-        <OptionSelect
-          id="deal-status"
-          value={optimistic}
-          onValueChange={(v) => request(v)}
-          options={DEAL_STATUS_LABELS}
-        />
-      </div>
-      {dialog}
-    </>
-  )
 }

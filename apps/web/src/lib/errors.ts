@@ -16,9 +16,9 @@ const DB_MESSAGES: Record<string, string> = {
     "Some values are out of the allowed range. Check the highlighted fields.",
   "23502": "A required value is missing.",
   P0002:
-    "We couldn't find that record. It may have been removed by your partner.",
+    "We couldn't find that record. It may have been removed.",
   PGRST116:
-    "We couldn't find that record. It may have been removed by your partner.",
+    "We couldn't find that record. It may have been removed.",
 }
 
 export function dbErrorMessage(

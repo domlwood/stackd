@@ -60,7 +60,7 @@ export function FundPotsPanel({
         <PagePlaceholder
           icon={PiggyBankIcon}
           title="No fund pots yet"
-          description="Add savings, partner contributions or equity release so we can work out what you can afford."
+          description="Add savings, contributions or equity release so we can work out what you can afford."
         >
           <Button onClick={() => openSheet(null)}>
             <PlusIcon aria-hidden />

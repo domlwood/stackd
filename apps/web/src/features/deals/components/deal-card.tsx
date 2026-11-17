@@ -38,9 +38,12 @@ import { copyDealLink } from "./copy-link"
 export function DealCard({
   deal,
   onMove,
+  news,
 }: {
   deal: PortfolioDeal
   onMove: (status: DealStatus) => void
+  /** Changes by others since you last opened it. */
+  news?: { count: number; by: string }
 }) {
   const s = deal.summary
   return (
@@ -63,6 +66,16 @@ export function DealCard({
           )}
         </div>
         <div className="min-w-0 flex-1">
+          {news ? (
+            <p className="flex items-center gap-1.5 text-xs font-medium text-brand-text">
+              <span
+                aria-hidden
+                className="size-2 shrink-0 rounded-full bg-brand"
+              />
+              {news.count === 1 ? "1 change" : `${news.count} changes`} from{" "}
+              {news.by}
+            </p>
+          ) : null}
           <Link
             href={`/deals/${deal.id}` as Route}
             prefetch={false}

@@ -332,6 +332,52 @@ export type Database = {
           },
         ]
       }
+      deal_view: {
+        Row: {
+          deal_id: string
+          last_seen_at: string
+          user_id: string
+          viewed_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          deal_id: string
+          last_seen_at?: string
+          user_id: string
+          viewed_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          deal_id?: string
+          last_seen_at?: string
+          user_id?: string
+          viewed_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_view_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_view_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_view_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       erc_band: {
         Row: {
           from_month: number
@@ -846,6 +892,15 @@ export type Database = {
     }
     Functions: {
       activity_ignored_columns: { Args: never; Returns: string[] }
+      deal_unread: {
+        Args: never
+        Returns: {
+          deal_id: string
+          last_activity_at: string
+          last_actor_id: string
+          unread: number
+        }[]
+      }
       is_workspace_member: {
         Args: { target_workspace: string }
         Returns: boolean

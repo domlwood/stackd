@@ -1,5 +1,10 @@
 import type { Route } from "next"
-import { KanbanSquareIcon, LandmarkIcon, type LucideIcon } from "lucide-react"
+import {
+  InboxIcon,
+  KanbanSquareIcon,
+  LandmarkIcon,
+  type LucideIcon,
+} from "lucide-react"
 
 export type NavItem = {
   title: string
@@ -12,6 +17,12 @@ export type NavItem = {
 // Analysing a property is the permanent + button, not a tab.
 // Settings returns to the nav once it has real controls (buy box, defaults).
 export const NAV_ITEMS: readonly NavItem[] = [
+  {
+    title: "Today",
+    href: "/today",
+    icon: InboxIcon,
+    matches: (p) => p.startsWith("/today"),
+  },
   {
     title: "Deals",
     href: "/",

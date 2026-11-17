@@ -21,6 +21,6 @@ export function safeRedirectPath(next: string | undefined): string {
     next.startsWith("//") ||
     next.startsWith("/\\")
   )
-    return "/"
+    return "/today"
   return next
 }

@@ -114,7 +114,7 @@ export function KeyNumbers() {
     <Card size="sm" className="gap-3 px-4">
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-medium">
-          Your numbers{" "}
+          Key numbers{" "}
           <span
             aria-live="polite"
             className="text-xs font-normal text-muted-foreground"

@@ -1,23 +1,19 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
-import { Skeleton } from "@workspace/ui/components/skeleton"
-
-import {
-  AnalysisReady,
-  DealProvider,
-} from "@/features/analysis/components/deal-provider"
+import { DealProvider } from "@/features/analysis/components/deal-provider"
 import { InputSheet } from "@/features/analysis/components/input-sheet"
-import { KeyNumbers } from "@/features/analysis/components/key-numbers"
-import { MetricStrip } from "@/features/analysis/components/metric-strip"
-import { HomeToggle } from "@/features/analysis/components/home-toggle"
 import { DealHeader } from "@/features/deals/components/deal-header"
 import { DealScrollReset } from "@/features/deals/components/deal-scroll-reset"
 import { DealTabs } from "@/features/deals/components/deal-tabs"
-import { ListingSummary } from "@/features/deals/components/listing-summary"
 import { getDealWorkspace } from "@/features/deals/queries"
-import { NotesView } from "@/features/notes/components/notes-view"
+import {
+  NoteComposerBar,
+  NotesPanel,
+} from "@/features/notes/components/notes-view"
 import { listDealNotes } from "@/features/notes/queries"
+import { MarkSeen } from "@/features/presence/components/mark-seen"
+import { listDealViewers } from "@/features/presence/queries"
 
 export async function generateMetadata({
   params,
@@ -32,54 +28,34 @@ export default async function DealLayout({
   children,
 }: LayoutProps<"/deals/[id]"> & { children: ReactNode }) {
   const { id } = await params
-  const [data, notes] = await Promise.all([
+  const [data, notes, viewers] = await Promise.all([
     getDealWorkspace(id),
     listDealNotes(id),
+    listDealViewers(id),
   ])
   return (
     <DealProvider data={data}>
       <DealScrollReset dealId={id} />
-      {/* Phones: one column. xl: assumptions left, sticky summary right. */}
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 xl:max-w-6xl">
-        <DealHeader />
-        <ListingSummary deal={data.deal} />
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">
-          <AnalysisReady
-            fallback={
-              <div
-                aria-busy="true"
-                aria-label="Running the numbers"
-                className="flex flex-col gap-4 xl:col-span-2"
-              >
-                <Skeleton className="h-40" />
-                <Skeleton className="h-16" />
-              </div>
-            }
-          >
-            <div className="flex min-w-0 flex-col gap-4 xl:col-start-1">
-              <HomeToggle />
-              <KeyNumbers />
-            </div>
-            <aside
-              aria-labelledby="summary-heading"
-              className="flex min-w-0 flex-col gap-2 xl:sticky xl:top-[calc(var(--header-height)+1.5rem)] xl:col-start-2 xl:row-span-2 xl:row-start-1"
-            >
-              <h2 id="summary-heading" className="text-sm font-medium">
-                Investment summary
-              </h2>
-              <MetricStrip />
-            </aside>
-          </AnalysisReady>
-          <div className="flex min-w-0 flex-col gap-4 xl:col-start-1">
-            <NotesView notes={notes} />
-            <DealTabs dealId={id} />
-            {children}
-            <p className="text-xs text-muted-foreground">
-              Projections are estimates based on your assumptions. They
-              aren&apos;t financial advice or a guarantee of returns.
-            </p>
-          </div>
+      <MarkSeen dealId={id} />
+      {/* Phones: one column, notes from the bar at the bottom. xl: the deal
+          on the left, the shared notes panel on the right. */}
+      <div className="mx-auto grid w-full max-w-3xl gap-4 xl:max-w-6xl xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start xl:gap-6">
+        <div className="flex min-w-0 flex-col gap-4">
+          <DealHeader viewers={viewers} />
+          <DealTabs dealId={id} noteCount={notes.length} />
+          {children}
+          <p className="text-xs text-muted-foreground">
+            Projections are estimates based on your assumptions. They
+            aren&apos;t financial advice or a guarantee of returns.
+          </p>
+          <NoteComposerBar />
         </div>
+        <aside
+          aria-label="Notes"
+          className="hidden max-h-[calc(100dvh-var(--header-height)-3rem)] min-w-0 overflow-y-auto overscroll-contain xl:sticky xl:top-[calc(var(--header-height)+1.5rem)] xl:flex xl:flex-col"
+        >
+          <NotesPanel notes={notes} />
+        </aside>
       </div>
       <InputSheet />
     </DealProvider>

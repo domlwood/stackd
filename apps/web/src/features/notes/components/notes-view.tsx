@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useTransition, type ReactNode } from "react"
+import { useId, useState, useTransition, type ReactNode } from "react"
 import {
   EllipsisVerticalIcon,
+  MessageSquarePlusIcon,
   ExternalLinkIcon,
   PencilIcon,
   PinIcon,
@@ -35,6 +36,7 @@ import {
 import { ConfirmDialog } from "@/components/blocks/confirm-dialog"
 import { FormField } from "@/components/blocks/form-field"
 import { MoneyInput } from "@/components/blocks/numeric-inputs"
+import { ResponsiveSheet } from "@/components/blocks/responsive-sheet"
 import { useDealBase } from "@/features/analysis/components/deal-provider"
 import { formatDate, formatDateTime, formatRelative } from "@/lib/format/date"
 import { formatMoney } from "@/lib/format/money"
@@ -50,44 +52,72 @@ import type { DealNote } from "../types"
 
 type Kind = DealNote["kind"]
 
-/** How many notes show before "Show all" (pinned ones always show). */
-const VISIBLE = 3
+/** The deal's notes page: everything, pinned on top, then newest first. */
+export function NotesView({ notes }: { notes: DealNote[] }) {
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Phones add notes from the bar at the bottom; wide screens from here. */}
+      <NotesFeed notes={notes} />
+    </div>
+  )
+}
 
 /**
- * The deal's shared notebook, central on the deal page: notes and
- * comparables, pinned on top, then newest first.
+ * The side panel on wide screens: add a note, see the latest. The Notes
+ * tab is hidden there, so this is where the conversation lives.
  */
-export function NotesView({ notes }: { notes: DealNote[] }) {
+export function NotesPanel({ notes }: { notes: DealNote[] }) {
+  const { data } = useDealBase()
+  return (
+    <section
+      aria-labelledby="notes-panel-heading"
+      className="flex flex-col gap-3"
+    >
+      <NotesHeading id="notes-panel-heading" count={notes.length} />
+      <Card size="sm" className="px-4">
+        <NoteForm dealId={data.deal.id} compact />
+      </Card>
+      <NotesFeed notes={notes} limit={4} />
+    </section>
+  )
+}
+
+function NotesHeading({ id, count }: { id: string; count: number }) {
+  return (
+    <h2 id={id} className="text-base font-semibold">
+      Notes
+      {count ? (
+        <span className="ml-1.5 text-sm font-normal text-muted-foreground">
+          {count}
+        </span>
+      ) : null}
+    </h2>
+  )
+}
+
+function EmptyNotes() {
+  return (
+    <p className="text-sm text-muted-foreground">
+      Nothing yet. Share what you find with each other: details from the agent,
+      questions, and comparable sales that back up the end value.
+    </p>
+  )
+}
+
+/** Comparables summary, then the notes (optionally the first few, with "Show all"). */
+function NotesFeed({ notes, limit }: { notes: DealNote[]; limit?: number }) {
   const { data } = useDealBase()
   const [showAll, setShowAll] = useState(false)
   const summary = summariseComps(notes, data.deal.floorAreaSqm)
   const pinned = notes.filter((n) => n.pinned).length
-  const visible = showAll ? notes : notes.slice(0, Math.max(VISIBLE, pinned))
+  const visible =
+    showAll || !limit ? notes : notes.slice(0, Math.max(limit, pinned))
   const hidden = notes.length - visible.length
   return (
-    <section aria-labelledby="notes-heading" className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 id="notes-heading" className="text-base font-semibold">
-          Notes
-          {notes.length ? (
-            <span className="ml-1.5 text-sm font-normal text-muted-foreground">
-              {notes.length}
-            </span>
-          ) : null}
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          Shared with your partner
-        </p>
-      </div>
-      <Card size="sm" className="px-4">
-        <NoteForm dealId={data.deal.id} />
-      </Card>
+    <>
       {summary ? <CompSummaryCard summary={summary} /> : null}
       {notes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Nothing yet. Share what you find with each other: details from the
-          agent, questions, and comparable sales that back up the end value.
-        </p>
+        <EmptyNotes />
       ) : (
         <ol className="flex flex-col gap-3" aria-label="Notes">
           {visible.map((note) => (
@@ -97,7 +127,7 @@ export function NotesView({ notes }: { notes: DealNote[] }) {
           ))}
         </ol>
       )}
-      {hidden > 0 || showAll ? (
+      {hidden > 0 || (showAll && limit) ? (
         <Button
           variant="ghost"
           size="sm"
@@ -107,7 +137,34 @@ export function NotesView({ notes }: { notes: DealNote[] }) {
           {showAll ? "Show fewer" : `Show all ${notes.length} notes`}
         </Button>
       ) : null}
-    </section>
+    </>
+  )
+}
+
+/**
+ * Phones and tablets: an "Add a note" bar pinned to the bottom of the deal,
+ * like a message box. Opens the note/comparable form in a sheet.
+ */
+export function NoteComposerBar() {
+  const { data } = useDealBase()
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="sticky bottom-[calc(3.5rem+1px+env(safe-area-inset-bottom))] z-10 -mx-4 border-t bg-background/95 px-4 py-2 backdrop-blur supports-backdrop-filter:bg-background/80 md:bottom-0 md:mx-0 md:rounded-t-lg md:border-x xl:hidden">
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+        className="flex h-11 w-full items-center gap-2 rounded-full border bg-card px-4 text-left text-sm text-muted-foreground shadow-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      >
+        <MessageSquarePlusIcon className="size-4 shrink-0" aria-hidden />
+        Add a note or comparable…
+      </button>
+      <ResponsiveSheet open={open} onOpenChange={setOpen} title="Add to notes">
+        {open ? (
+          <NoteForm dealId={data.deal.id} onAdded={() => setOpen(false)} />
+        ) : null}
+      </ResponsiveSheet>
+    </div>
   )
 }
 
@@ -367,10 +424,16 @@ function NoteForm({
   dealId,
   note,
   onDone,
+  onAdded,
+  compact,
 }: {
   dealId: string
   note?: DealNote
   onDone?: () => void
+  /** Called after a new note is saved (e.g. to close the sheet). */
+  onAdded?: () => void
+  /** Side panel: smaller note box. */
+  compact?: boolean
 }) {
   const comp = note?.comp
   const [kind, setKind] = useState<Kind>(note?.kind ?? "note")
@@ -431,10 +494,13 @@ function NoteForm({
       else {
         reset()
         toast.success(kind === "note" ? "Note added" : "Comparable added")
+        onAdded?.()
       }
     })
 
-  const idFor = (name: string) => `note-${note?.id ?? "new"}-${name}`
+  // Unique per form: the panel, the sheet and edit forms can all be on the page.
+  const formId = useId()
+  const idFor = (name: string) => `note${formId}${name}`
   const field = (
     name: string,
     label: string,
@@ -566,7 +632,7 @@ function NoteForm({
           <Textarea
             id={idFor("body")}
             value={body}
-            rows={kind === "note" ? 3 : 2}
+            rows={kind === "note" && !compact ? 3 : 2}
             aria-invalid={!!errors.body}
             placeholder={
               kind === "note"

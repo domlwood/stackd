@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await page.getByLabel("Email").fill(process.env.SEED_USER_A_EMAIL ?? "")
   await page.getByLabel("Password").fill(process.env.SEED_USER_A_PASSWORD ?? "")
   await page.getByRole("button", { name: "Sign in" }).click()
-  await page.waitForURL("**/")
+  await page.waitForURL("**/today")
 })
 
 test("create a deal manually, edit a number, pass with a reason, delete", async ({
@@ -56,13 +56,26 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
   await expect(page.getByText("Using the asking price for now.")).toHaveCount(0)
   await expect(page.getByText("Saving…")).toHaveCount(0)
 
-  await page.getByRole("link", { name: "Activity" }).click()
+  // Notes: add one from the bar at the bottom (phones/tablets) or the panel (wide).
+  const composer = page.getByRole("button", {
+    name: "Add a note or comparable…",
+  })
+  if (await composer.isVisible()) await composer.click()
+  const noteBox = page.getByLabel("Note", { exact: true }).last()
+  await noteBox.fill("Agent says the vendor wants a quick sale.")
+  await page.getByRole("button", { name: "Add note" }).last().click()
+  await expect(
+    page.getByText("Agent says the vendor wants a quick sale.").first()
+  ).toBeVisible()
+
+  await page.goto(page.url().replace(/\/(numbers|notes)$/, "") + "/activity")
+
   await expect(page.getByText("set End value (GDV) to £210,000")).toBeVisible()
   await expect(page.getByText("set Refurb cost to £25,000")).toBeVisible()
 
   // Passing requires a reason.
-  await page.getByRole("combobox").first().click()
-  await page.getByRole("option", { name: "Passed" }).click()
+  await page.getByRole("button", { name: "Deal actions" }).click()
+  await page.getByRole("menuitem", { name: "Passed" }).click()
   await page.getByRole("button", { name: "Pass on deal" }).click()
   await expect(page.getByText("Say why you're passing.")).toBeVisible()
   await page.getByLabel("Reason").fill("E2E: numbers don't work")

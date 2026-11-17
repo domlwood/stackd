@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { ExternalLinkIcon } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
@@ -102,18 +101,11 @@ export function ListingSummary({ deal }: { deal: Deal }) {
         {deal.lat !== null && deal.lng !== null ? (
           <DealMap lat={deal.lat} lng={deal.lng} address={deal.addressLine} />
         ) : null}
-        {/* One sentence that wraps naturally; the link gets its own line on phones. */}
-        <div className="flex flex-col gap-1.5 text-xs text-muted-foreground sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-          {meta.length ? (
-            <p className="text-pretty">{meta.join(" · ")}</p>
-          ) : null}
-          <Link
-            href={`/deals/${deal.id}/listing`}
-            className="shrink-0 self-start underline underline-offset-2 hover:text-foreground sm:self-auto"
-          >
-            Full property details
-          </Link>
-        </div>
+        {meta.length ? (
+          <p className="text-xs text-pretty text-muted-foreground">
+            {meta.join(" · ")}
+          </p>
+        ) : null}
       </div>
     </Card>
   )

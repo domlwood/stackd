@@ -12,7 +12,8 @@ async function signIn(page: Page) {
   await page.getByLabel("Email").fill(process.env.SEED_USER_A_EMAIL ?? "")
   await page.getByLabel("Password").fill(process.env.SEED_USER_A_PASSWORD ?? "")
   await page.getByRole("button", { name: "Sign in" }).click()
-  await page.waitForURL(BASE + "/")
+  await page.waitForURL(BASE + "/today")
+  await page.goto(BASE + "/")
 }
 
 async function main() {

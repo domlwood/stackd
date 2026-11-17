@@ -18,6 +18,7 @@ import {
 
 import { PagePlaceholder } from "@/components/blocks/page-placeholder"
 import { DEAL_VIEWS, inDealView, type DealView } from "../active"
+import type { Unread } from "@/features/presence/types"
 import type { PortfolioDeal } from "../portfolio"
 import type { DealStatus } from "../schemas"
 import { DealCard } from "./deal-card"
@@ -35,7 +36,9 @@ function matchesSearch(deal: PortfolioDeal, query: string) {
 function MovableCard({
   deal,
   onOptimisticMove,
+  news,
 }: {
+  news?: { count: number; by: string }
   deal: PortfolioDeal
   onOptimisticMove: (id: string, status: DealStatus) => void
 }) {
@@ -45,13 +48,23 @@ function MovableCard({
   )
   return (
     <>
-      <DealCard deal={deal} onMove={request} />
+      <DealCard deal={deal} onMove={request} news={news} />
       {dialog}
     </>
   )
 }
 
-export function PipelineView({ deals }: { deals: PortfolioDeal[] }) {
+export function PipelineView({
+  deals,
+  unread = {},
+  names = {},
+}: {
+  deals: PortfolioDeal[]
+  /** Changes by others since you last opened each deal. */
+  unread?: Record<string, Unread>
+  /** Member names by user id. */
+  names?: Record<string, string>
+}) {
   const [query, setQuery] = useState("")
   const [view, setView] = useState<DealView>("all")
   const [optimistic, move] = useOptimistic(
@@ -138,6 +151,14 @@ export function PipelineView({ deals }: { deals: PortfolioDeal[] }) {
             <li key={deal.id} className="min-w-0">
               <MovableCard
                 deal={deal}
+                news={
+                  unread[deal.id]
+                    ? {
+                        count: unread[deal.id]!.unread,
+                        by: names[unread[deal.id]!.lastActorId] ?? "Someone",
+                      }
+                    : undefined
+                }
                 onOptimisticMove={(id, s) => move({ id, status: s })}
               />
             </li>

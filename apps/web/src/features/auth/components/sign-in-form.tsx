@@ -85,10 +85,6 @@ export function SignInForm({ next }: { next?: string }) {
                 {pending ? <Spinner /> : null}
                 {pending ? "Signing in…" : "Sign in"}
               </Button>
-              <FieldDescription className="text-center">
-                Forgotten your password? Ask your partner to reset it from the
-                Supabase dashboard.
-              </FieldDescription>
             </Field>
           </FieldGroup>
         </form>

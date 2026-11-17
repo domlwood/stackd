@@ -52,7 +52,7 @@ export async function updateSession(request: NextRequest) {
 
   if (signedIn && pathname === "/sign-in") {
     const url = request.nextUrl.clone()
-    url.pathname = "/"
+    url.pathname = "/today"
     url.search = ""
     return NextResponse.redirect(url)
   }

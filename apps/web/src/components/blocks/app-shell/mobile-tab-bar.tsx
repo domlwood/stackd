@@ -20,7 +20,7 @@ export function MobileTabBar() {
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden"
     >
-      <ul className="grid grid-cols-2">
+      <ul className="grid grid-cols-3">
         {NAV_ITEMS.map((item) => {
           const isActive = active?.href === item.href
           return (

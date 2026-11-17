@@ -17,7 +17,8 @@ import type { NewDealOptions } from "@/features/capture/options"
 /**
  * The permanent + button (bottom right, every page) and the import sheet it
  * opens: a bottom sheet on phones, a side sheet from md up. Products load when
- * it opens, so pages don't pay for them. Hidden on /deals/new and /settings.
+ * it opens, so pages don't pay for them. Hidden on /deals/new and /settings,
+ * and on a deal, where adding a note is the main action.
  */
 export function NewDealLauncher() {
   const pathname = usePathname()
@@ -39,6 +40,8 @@ export function NewDealLauncher() {
 
   // Not on the import page itself, nor over the Settings save bar.
   if (pathname === "/deals/new" || pathname === "/settings") return null
+  // On a deal, adding a note is the main action (the bar, or the notes panel).
+  if (pathname.startsWith("/deals/")) return null
 
   return (
     <>
