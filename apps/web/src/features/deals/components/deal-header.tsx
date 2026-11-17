@@ -10,7 +10,6 @@ import {
   ArrowLeftIcon,
   EllipsisVerticalIcon,
   ExternalLinkIcon,
-  EyeIcon,
   HouseIcon,
   LinkIcon,
   Trash2Icon,
@@ -32,8 +31,8 @@ import {
 import { ConfirmDialog } from "@/components/blocks/confirm-dialog"
 import { useDealBase } from "@/features/analysis/components/deal-provider"
 import type { DealViewer } from "@/features/presence/types"
-import type { Member } from "@/features/workspace/queries"
-import { formatDateTime, formatRelative } from "@/lib/format/date"
+import { TakeControl } from "@/features/takes/components/take-control"
+import type { DealTakes } from "@/features/takes/takes"
 import { deleteDeal } from "../actions"
 import { PROPERTY_TYPE_LABELS } from "../schemas"
 import { toggleArchive } from "./archive"
@@ -51,7 +50,13 @@ function listingLabel(url: string): string {
   }
 }
 
-export function DealHeader({ viewers = [] }: { viewers?: DealViewer[] }) {
+export function DealHeader({
+  viewers = [],
+  takes = {},
+}: {
+  viewers?: DealViewer[]
+  takes?: DealTakes
+}) {
   const { data, memberName } = useDealBase()
   const { deal } = data
   const router = useRouter()
@@ -87,7 +92,6 @@ export function DealHeader({ viewers = [] }: { viewers?: DealViewer[] }) {
               </Badge>
             ) : null}
           </p>
-          <SeenBy viewers={viewers} members={data.members} name={memberName} />
           {deal.archivedAt ? (
             <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
               <ArchiveIcon className="size-3.5" aria-hidden />
@@ -163,6 +167,12 @@ export function DealHeader({ viewers = [] }: { viewers?: DealViewer[] }) {
           </DropdownMenu>
         </div>
       </div>
+      <TakeControl
+        dealId={deal.id}
+        takes={takes}
+        members={data.members}
+        currentUserId={data.currentUserId}
+      />
       {/* The listing is where the details live: photos, floorplan, description. */}
       <div className="flex flex-wrap items-center gap-2">
         {deal.listingUrl ? (
@@ -209,41 +219,3 @@ export function DealHeader({ viewers = [] }: { viewers?: DealViewer[] }) {
   )
 }
 
-/** "Alex viewed 2h ago", by name, for everyone but you. */
-function SeenBy({
-  viewers,
-  members,
-  name,
-}: {
-  viewers: DealViewer[]
-  members: Member[]
-  name: (userId: string | null) => string
-}) {
-  const others = members.filter((m) => !m.isYou)
-  if (others.length === 0) return null
-  return (
-    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-      {others.map((m) => {
-        const seen = viewers.find((v) => v.userId === m.userId)
-        return (
-          <span key={m.userId} className="inline-flex items-center gap-1">
-            <EyeIcon className="size-3.5" aria-hidden />
-            {seen ? (
-              <>
-                {name(m.userId)} viewed{" "}
-                <time
-                  dateTime={seen.lastSeenAt}
-                  title={formatDateTime(seen.lastSeenAt)}
-                >
-                  {formatRelative(seen.lastSeenAt)}
-                </time>
-              </>
-            ) : (
-              <>{name(m.userId)} hasn&apos;t opened this yet</>
-            )}
-          </span>
-        )
-      })}
-    </p>
-  )
-}
