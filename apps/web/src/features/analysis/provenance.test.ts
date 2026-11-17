@@ -57,7 +57,7 @@ describe("provenanceTag", () => {
       "estimated"
     )
     expect(provenanceTag("flip.taxMode", derived, {}, facts)).toBe("preset")
-    expect(provenanceTag("plan.strategy", derived, {}, facts)).toBe("preset")
+    expect(provenanceTag("buyer.situation", derived, {}, facts)).toBe("preset")
     expect(provenanceTag("purchase.legal", p("default"), {}, facts)).toBe(
       "preset"
     )

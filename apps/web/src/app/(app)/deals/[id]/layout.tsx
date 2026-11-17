@@ -10,7 +10,7 @@ import {
 import { InputSheet } from "@/features/analysis/components/input-sheet"
 import { KeyNumbers } from "@/features/analysis/components/key-numbers"
 import { MetricStrip } from "@/features/analysis/components/metric-strip"
-import { StrategyPicker } from "@/features/analysis/components/strategy-picker"
+import { HomeToggle } from "@/features/analysis/components/home-toggle"
 import { DealHeader } from "@/features/deals/components/deal-header"
 import { DealScrollReset } from "@/features/deals/components/deal-scroll-reset"
 import { DealTabs } from "@/features/deals/components/deal-tabs"
@@ -52,7 +52,7 @@ export default async function DealLayout({
             }
           >
             <div className="flex min-w-0 flex-col gap-4 xl:col-start-1">
-              <StrategyPicker />
+              <HomeToggle />
               <KeyNumbers />
             </div>
             <aside

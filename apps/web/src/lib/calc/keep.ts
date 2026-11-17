@@ -16,8 +16,6 @@ export type KeepResult =
   | {
       available: false
       reason: string
-      /** Keeping isn't part of the chosen strategy (not a setup problem). */
-      notInPlan?: true
     }
   | {
       available: true

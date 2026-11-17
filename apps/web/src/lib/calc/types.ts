@@ -59,14 +59,23 @@ export type CalcProduct = {
 }
 
 export type BuyerEntity = "personal" | "ltd"
-export type TaxMode = "income_tax" | "cgt" | "corp_tax" | "main_residence"
-
 /**
- * How the deal is meant to end. "live_in_sell": buy as your home on a
- * residential mortgage, refurb while living there, sell. "flip": buy, refurb,
- * sell. "brr": compare flipping with refinancing and keeping it as a let.
+ * Where the buyer stands for stamp duty (personal buyers; a company always
+ * pays higher rates).
+ *  - first_home: first-time buyer, buying to live in → relief up to £500k
+ *  - moving_home: replacing your home, old one sold first → standard rates
+ *  - moving_home_unsold: replacing your home before the old one sells →
+ *    higher rates now, surcharge reclaimable if it sells within 3 years
+ *  - additional: you'll own another home as well → higher rates
+ *  - no_other_property: not your home and you own nothing else → standard
  */
-export type Strategy = "live_in_sell" | "flip" | "brr"
+export type BuyerSituation =
+  | "first_home"
+  | "moving_home"
+  | "moving_home_unsold"
+  | "additional"
+  | "no_other_property"
+export type TaxMode = "income_tax" | "cgt" | "corp_tax" | "main_residence"
 
 export type RefurbItem = {
   id: string
@@ -77,13 +86,16 @@ export type RefurbItem = {
 
 /** Fully-resolved inputs for one view (Agreed or a user's proposals). */
 export type DealInputs = {
-  plan: { strategy: Strategy }
+  /**
+   * liveIn: bought as your home (personal name, residential mortgage, usually
+   * first-time buyer): you live there through the refurb, so the sale is
+   * your main residence. Both exits (A flip, B keep) are always analysed.
+   */
+  plan: { liveIn: boolean }
   buyer: {
     entity: BuyerEntity
-    additionalProperty: boolean
+    situation: BuyerSituation
     nonResident: boolean
-    /** Personal buyer(s) who have never owned a home anywhere, buying to live in. */
-    firstTimeBuyer: boolean
     /** Ltd only: relief from the 17% flat rate (e.g. property rental business). */
     corporateRelief: boolean
   }

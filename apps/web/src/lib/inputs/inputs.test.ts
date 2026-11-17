@@ -281,62 +281,111 @@ describe("registry", () => {
   })
 })
 
-describe("plan strategy and the tax treatment it implies", () => {
-  const PRODUCT = "22222222-2222-4222-8222-222222222222"
-  const resolve = (rows: StoredInput[]) =>
+describe("buying as your home and what it implies", () => {
+  const FTB = {
+    ...DEFAULTS,
+    defaults: {
+      ...DEFAULTS.defaults,
+      buyer: { ...DEFAULTS.defaults.buyer, firstTimeBuyer: true },
+    },
+  }
+  const resolve = (rows: StoredInput[], defaults = FTB) =>
     resolveInputs({
       stored: rows,
-      defaults: DEFAULTS,
+      defaults,
       view: { kind: "agreed" },
       refurbItemIds: [],
     })
 
-  it("a personal first-time buyer defaults to live in & sell, with no tax on the sale", () => {
-    const r = resolve([stored("buyer.firstTimeBuyer", true)])
-    expect(r.values["plan.strategy"]).toBe("live_in_sell")
+  it("a personal first-time buyer defaults to buying as their home, with no tax on the sale", () => {
+    const r = resolve([])
+    expect(r.values["plan.liveIn"]).toBe(true)
+    expect(r.values["buyer.situation"]).toBe("first_home")
     expect(r.values["flip.taxMode"]).toBe("main_residence")
   })
 
-  it("a deal with a refinance product stays a BRR comparison", () => {
-    const r = resolve([
-      stored("buyer.firstTimeBuyer", true),
-      stored("keep.product", PRODUCT),
-    ])
-    expect(r.values["plan.strategy"]).toBe("brr")
+  it("other buyers default to an investment purchase taxed as trading", () => {
+    const r = resolve([], DEFAULTS)
+    expect(r.values["plan.liveIn"]).toBe(false)
     expect(r.values["flip.taxMode"]).toBe("income_tax")
   })
 
-  it("other buyers default to a flip taxed as trading", () => {
-    const r = resolve([])
-    expect(r.values["plan.strategy"]).toBe("flip")
+  it("turning it off drops first-time buyer relief and taxes the sale", () => {
+    const r = resolve([stored("plan.liveIn", false)])
+    expect(r.values["buyer.situation"]).toBe("no_other_property")
     expect(r.values["flip.taxMode"]).toBe("income_tax")
   })
 
-  it("an explicit choice wins over the default, and drives the tax default", () => {
+  it("once you're not first-time buyers, your home defaults to moving home", () => {
+    const owner = {
+      ...DEFAULTS,
+      defaults: {
+        ...DEFAULTS.defaults,
+        buyer: {
+          ...DEFAULTS.defaults.buyer,
+          firstTimeBuyer: false,
+          additionalProperty: true,
+        },
+      },
+    }
+    expect(
+      resolve([stored("plan.liveIn", true)], owner).values["buyer.situation"]
+    ).toBe("moving_home")
+    expect(
+      resolve([stored("plan.liveIn", false)], owner).values["buyer.situation"]
+    ).toBe("additional")
+  })
+
+  it("no first-time buyer relief on an investment, even if it was chosen", () => {
     const r = resolve([
-      stored("buyer.firstTimeBuyer", true),
-      stored("plan.strategy", "flip"),
+      stored("plan.liveIn", false),
+      stored("buyer.situation", "first_home"),
     ])
-    expect(r.values["plan.strategy"]).toBe("flip")
-    expect(r.values["flip.taxMode"]).toBe("income_tax")
+    const { inputs } = toDealInputs(r, [])
+    expect(inputs.buyer.situation).toBe("no_other_property")
+    expect(inputs.flip.taxMode).toBe("income_tax")
+  })
+
+  it("a company can't be buying its home: company tax, no main-residence relief", () => {
+    const r = resolve([
+      stored("plan.liveIn", true),
+      stored("buyer.entity", "ltd"),
+    ])
+    const { inputs } = toDealInputs(r, [])
+    expect(inputs.plan.liveIn).toBe(false)
+    expect(inputs.flip.taxMode).toBe("corp_tax")
+  })
+
+  it("a chosen situation wins over the switch", () => {
+    const r = resolve([
+      stored("plan.liveIn", true),
+      stored("buyer.situation", "moving_home_unsold"),
+    ])
+    expect(r.values["buyer.situation"]).toBe("moving_home_unsold")
+  })
+
+  it("turning it on buys in your own name", () => {
+    const r = resolve([stored("plan.liveIn", true)], {
+      ...FTB,
+      buyerEntity: "ltd",
+    })
+    expect(r.values["buyer.entity"]).toBe("personal")
+    expect(r.values["flip.taxMode"]).toBe("main_residence")
   })
 
   it("a stored tax treatment is never overridden by the plan", () => {
-    const r = resolve([
-      stored("buyer.firstTimeBuyer", true),
-      stored("flip.taxMode", "cgt"),
-    ])
+    const r = resolve([stored("flip.taxMode", "cgt")])
     expect(r.values["flip.taxMode"]).toBe("cgt")
   })
 
   it("derived values don't show as proposal diffs when the plan is only agreed", () => {
     const r = resolveInputs({
-      stored: [stored("buyer.firstTimeBuyer", true)],
-      defaults: DEFAULTS,
+      stored: [stored("plan.liveIn", true)],
+      defaults: FTB,
       view: { kind: "user", userId: BLAIR },
       refurbItemIds: [],
     })
     expect(r.diffKeys).not.toContain("flip.taxMode")
-    expect(r.diffKeys).not.toContain("plan.strategy")
+    expect(r.diffKeys).not.toContain("buyer.situation")
   })
 })

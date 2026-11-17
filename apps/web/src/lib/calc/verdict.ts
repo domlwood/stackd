@@ -124,7 +124,7 @@ export function verdict(
           (exit) => `${exit === "flip" ? saleName : "Keep"} meets your buy box`
         )
       : criteria.filter((c) => !c.pass).map((c) => `Misses: ${c.label}`)
-  if (!keep.available && !keep.notInPlan) reasons.push(keep.reason)
+  if (!keep.available) reasons.push(keep.reason)
 
   return { level, criteria, reasons }
 }

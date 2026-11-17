@@ -1,18 +1,17 @@
 import { RULES } from "./fixtures"
 import { selectRuleSet } from "./rules/schema"
 import { ENGLAND_RULES } from "./rules/england-2026"
-import { calculateSdlt } from "./sdlt"
+import { calculateSdlt, normaliseBuyer } from "./sdlt"
 import type { DealInputs } from "./types"
 
 const personal: DealInputs["buyer"] = {
   entity: "personal",
-  additionalProperty: false,
+  situation: "moving_home",
   nonResident: false,
-  firstTimeBuyer: false,
   corporateRelief: false,
 }
-const ftb = { ...personal, firstTimeBuyer: true }
-const additional = { ...personal, additionalProperty: true }
+const ftb = { ...personal, situation: "first_home" as const }
+const additional = { ...personal, situation: "additional" as const }
 const ltd = { ...personal, entity: "ltd" as const }
 const sdlt = (buyer: DealInputs["buyer"], pounds: number) =>
   calculateSdlt(buyer, pounds * 100, RULES.sdlt)
@@ -87,15 +86,63 @@ describe("SDLT first-time buyer relief", () => {
     )
   })
   it("doesn't apply to an additional property or a company", () => {
-    expect(sdlt({ ...ftb, additionalProperty: true }, 200_000).basis).toBe(
-      "higher_rates"
-    )
+    expect(sdlt(additional, 200_000).basis).toBe("higher_rates")
     expect(sdlt({ ...ftb, entity: "ltd" }, 200_000).basis).toBe("higher_rates")
   })
   it("non-resident surcharge still applies on top", () => {
     expect(sdlt({ ...ftb, nonResident: true }, 200_000).totalPence).toBe(
       400_000
     )
+  })
+})
+
+describe("SDLT buying situations", () => {
+  it("the user's case: a £165,000 first home pays nothing; moving home pays £800", () => {
+    expect(sdlt(ftb, 165_000).totalPence).toBe(0)
+    expect(sdlt(personal, 165_000).totalPence).toBe(80_000)
+  })
+  it("an investment when you own nothing else pays standard rates", () => {
+    const none = { ...personal, situation: "no_other_property" as const }
+    expect(sdlt(none, 295_000).totalPence).toBe(475_000)
+    expect(sdlt(none, 295_000).basis).toBe("standard")
+  })
+  it("moving before the old home sells pays the surcharge, flagged as reclaimable", () => {
+    const unsold = { ...personal, situation: "moving_home_unsold" as const }
+    const r = sdlt(unsold, 295_000)
+    expect(r.totalPence).toBe(1_950_000)
+    expect(r.basis).toBe("higher_rates")
+    expect(r.reclaimablePence).toBe(1_475_000)
+    expect(r.figure.note).toMatch(/claim back the £14,750/)
+  })
+  it("an additional property's surcharge isn't reclaimable", () => {
+    expect(sdlt(additional, 295_000).reclaimablePence).toBe(0)
+  })
+  it("a company ignores the personal situation and pays higher rates", () => {
+    expect(sdlt({ ...ftb, entity: "ltd" }, 295_000).totalPence).toBe(1_950_000)
+    expect(sdlt({ ...ftb, entity: "ltd" }, 295_000).reclaimablePence).toBe(0)
+  })
+})
+
+describe("which situations make sense", () => {
+  it("first-time buyer relief needs a personal purchase of your own home", () => {
+    // An investment can't be a first home, so it's read as owning nothing else.
+    const investment = normaliseBuyer(false, ftb)
+    expect(investment.buyer.situation).toBe("no_other_property")
+    expect(sdlt(investment.buyer, 165_000).totalPence).toBe(80_000)
+    // A company can't buy your home at all.
+    const company = normaliseBuyer(true, { ...ftb, entity: "ltd" })
+    expect(company.liveIn).toBe(false)
+    expect(sdlt(company.buyer, 165_000).basis).toBe("higher_rates")
+  })
+  it("maps a situation saved for the other mode to its equivalent", () => {
+    const unsold = { ...personal, situation: "moving_home_unsold" as const }
+    expect(normaliseBuyer(false, unsold).buyer.situation).toBe("additional")
+    expect(normaliseBuyer(true, additional).buyer.situation).toBe(
+      "moving_home_unsold"
+    )
+    const none = { ...personal, situation: "no_other_property" as const }
+    expect(normaliseBuyer(true, none).buyer.situation).toBe("moving_home")
+    expect(normaliseBuyer(true, ftb).buyer.situation).toBe("first_home")
   })
 })
 

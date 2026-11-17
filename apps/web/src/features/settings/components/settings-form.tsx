@@ -265,6 +265,12 @@ export function SettingsForm({ initial }: { initial: WorkspaceSettings }) {
             checked={d.buyer.firstTimeBuyer}
             onChange={(v) => setDefaults("buyer", { firstTimeBuyer: v })}
           />
+          <SwitchSetting
+            id="ownsHome"
+            label="You own a home now"
+            checked={d.buyer.additionalProperty}
+            onChange={(v) => setDefaults("buyer", { additionalProperty: v })}
+          />
         </div>
       </Section>
 

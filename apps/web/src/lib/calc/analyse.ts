@@ -187,21 +187,13 @@ export function analyseCore(
 
   const keepMonths = refinanceMonth(inputs.refurb.months, ctx.refiProduct)
   const keepInvested = cashInvested("keep", keepMonths, parts, inputs, finance)
-  const keep: KeepResult =
-    inputs.plan.strategy === "brr"
-      ? analyseKeep({
-          inputs,
-          refi: ctx.refiProduct,
-          months: keepMonths,
-          redemption: redeemPurchaseFinance(finance, keepMonths),
-          cashInvested: keepInvested,
-        })
-      : {
-          available: false,
-          notInPlan: true,
-          reason:
-            "Keeping it as a let isn't part of this plan. Choose Flip or keep (BRR) to compare.",
-        }
+  const keep: KeepResult = analyseKeep({
+    inputs,
+    refi: ctx.refiProduct,
+    months: keepMonths,
+    redemption: redeemPurchaseFinance(finance, keepMonths),
+    cashInvested: keepInvested,
+  })
 
   const cashRequired =
     keep.available && keepInvested.value > flipInvested.value
@@ -256,23 +248,19 @@ export function analyseCore(
     sdlt.basis === "first_time_buyer" ||
     (ctx.purchaseProduct?.type === "residential" &&
       inputs.buyer.entity === "personal")
-  if (ownerOccupierTerms && inputs.plan.strategy !== "live_in_sell") {
+  if (ownerOccupierTerms && !inputs.plan.liveIn) {
     warnings.push({
       code: "owner_occupier_terms",
       message:
-        "First-time buyer relief and a residential mortgage are for a home you'll live in. Buying to flip or let instead isn't what either is for: you could breach the mortgage terms, and you can't claim the relief without intending to live there. Check with your broker and conveyancer.",
-      inputs: [
-        "plan.strategy",
-        "buyer.firstTimeBuyer",
-        "purchaseFinance.product",
-      ],
+        "First-time buyer relief and a residential mortgage are for a home you'll live in. Buying to flip or let without living there isn't what either is for: you could breach the mortgage terms, and you can't claim the relief without intending to live there. Check with your broker and conveyancer.",
+      inputs: ["plan.liveIn", "buyer.situation", "purchaseFinance.product"],
     })
   } else if (ownerOccupierTerms) {
     warnings.push({
       code: "live_in_terms",
       message:
         "This plan assumes it's genuinely your home: first-time buyer relief, the residential mortgage and the tax-free sale all depend on that. Mortgage terms vary on selling early; check yours before you commit.",
-      inputs: ["plan.strategy"],
+      inputs: ["plan.liveIn"],
     })
   }
   if (affordability && !affordability.affordable) {
@@ -299,7 +287,7 @@ export function analyseCore(
       flip,
       keep,
       ctx.buyBox,
-      inputs.plan.strategy === "live_in_sell" ? "Sale" : "Flip"
+      inputs.plan.liveIn ? "Sale" : "Flip"
     ),
     warnings,
   }

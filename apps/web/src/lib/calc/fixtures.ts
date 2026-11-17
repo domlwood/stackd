@@ -95,12 +95,11 @@ export const BUY_BOX: BuyBox = {
 }
 
 export const INPUTS: DealInputs = {
-  plan: { strategy: "brr" },
+  plan: { liveIn: false },
   buyer: {
     entity: "personal",
-    additionalProperty: true,
+    situation: "additional",
     nonResident: false,
-    firstTimeBuyer: false,
     corporateRelief: false,
   },
   purchase: {

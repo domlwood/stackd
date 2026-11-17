@@ -2,9 +2,9 @@ import { z } from "zod"
 
 import type {
   BuyerEntity,
+  BuyerSituation,
   Pence,
   Ratio,
-  Strategy,
   TaxMode,
 } from "@/lib/calc/types"
 
@@ -108,28 +108,21 @@ const TAX_MODE_OPTIONS: Record<TaxMode, string> = {
   corp_tax: "Corporation tax",
 }
 
-export const STRATEGY_OPTIONS: Record<Strategy, string> = {
-  live_in_sell: "Live in & sell",
-  flip: "Flip",
-  brr: "Flip or keep (BRR)",
+export const BUYER_SITUATION_OPTIONS: Record<BuyerSituation, string> = {
+  first_home: "First-time buyer",
+  moving_home: "Moving home: old home sold first",
+  moving_home_unsold: "Moving home: still own the old one",
+  no_other_property: "You own no other property",
+  additional: "You'll own another home too",
 }
 
-export const STRATEGY_DESCRIPTIONS: Record<Strategy, string> = {
-  live_in_sell: "Buy it as your home, refurb while you live there, then sell.",
-  flip: "Buy, refurb and sell without living there.",
-  brr: "Compare selling with refinancing and keeping it as a let.",
-}
-
-/** Live in & sell suits personal first-time buyers; a chosen refinance product means BRR. */
-function defaultStrategy(values: {
-  entity: unknown
-  firstTimeBuyer: unknown
-  refiProduct: unknown
-}): Strategy {
-  if (values.refiProduct) return "brr"
-  return values.entity === "personal" && values.firstTimeBuyer
-    ? "live_in_sell"
-    : "flip"
+/** Default situation: your home → first-time buyer or moving; otherwise from what you own. */
+function situationFor(liveIn: boolean, s: DefaultsSource): BuyerSituation {
+  const { firstTimeBuyer, additionalProperty } = s.defaults.buyer
+  if (liveIn) return firstTimeBuyer ? "first_home" : "moving_home"
+  return additionalProperty && !firstTimeBuyer
+    ? "additional"
+    : "no_other_property"
 }
 
 function addMonths(isoDay: string, count: number): string {
@@ -143,26 +136,17 @@ function def<T>(d: InputDef<T>): InputDef<T> {
 }
 
 export const INPUT_DEFS = [
-  // Plan — first, so inputs derived from it (tax treatment) see its value.
+  // Plan — first, so buyer and tax inputs derived from it see its value.
   def({
-    key: "plan.strategy",
-    label: "Plan",
+    key: "plan.liveIn",
+    label: "Buying as your home",
     section: "plan",
-    kind: "enum",
-    options: STRATEGY_OPTIONS,
-    schema: z.enum(["live_in_sell", "flip", "brr"]),
+    kind: "boolean",
+    description:
+      "In your personal name, on a residential mortgage, usually as a first-time buyer. You live there through the refurb, so selling is tax-free as your main residence.",
+    schema: z.boolean(),
     defaultValue: (s) =>
-      defaultStrategy({
-        entity: s.buyerEntity,
-        firstTimeBuyer: s.defaults.buyer.firstTimeBuyer,
-        refiProduct: null,
-      }),
-    derive: (values) =>
-      defaultStrategy({
-        entity: values["buyer.entity"],
-        firstTimeBuyer: values["buyer.firstTimeBuyer"],
-        refiProduct: values["keep.product"],
-      }),
+      s.buyerEntity === "personal" && s.defaults.buyer.firstTimeBuyer,
   }),
   // Buyer
   def({
@@ -173,24 +157,30 @@ export const INPUT_DEFS = [
     options: { personal: "Personal name", ltd: "Limited company" },
     schema: z.enum(["personal", "ltd"]),
     defaultValue: (s) => s.buyerEntity,
+    // Your home is bought in your own name.
+    derive: (values, s) => (values["plan.liveIn"] ? "personal" : s.buyerEntity),
   }),
   def({
-    key: "buyer.firstTimeBuyer",
-    label: "First-time buyer",
+    key: "buyer.situation",
+    label: "Buying situation",
     section: "buyer",
-    kind: "boolean",
+    kind: "enum",
+    options: BUYER_SITUATION_OPTIONS,
     description:
-      "Every buyer has never owned a home anywhere and you'll live in it. Unlocks first-time buyer stamp duty relief.",
-    schema: z.boolean(),
-    defaultValue: (s) => s.defaults.buyer.firstTimeBuyer,
-  }),
-  def({
-    key: "buyer.additionalProperty",
-    label: "Additional property (higher-rate SDLT)",
-    section: "buyer",
-    kind: "boolean",
-    schema: z.boolean(),
-    defaultValue: (s) => s.defaults.buyer.additionalProperty,
+      "Sets stamp duty. First-time buyers pay nothing up to £300k. You pay the 5% higher-rates surcharge when you'll own more than one home, but you can claim it back if you're replacing your home and sell the old one within 3 years.",
+    schema: z.enum([
+      "first_home",
+      "moving_home",
+      "moving_home_unsold",
+      "additional",
+      "no_other_property",
+    ]),
+    defaultValue: (s) =>
+      situationFor(
+        s.buyerEntity === "personal" && s.defaults.buyer.firstTimeBuyer,
+        s
+      ),
+    derive: (values, s) => situationFor(values["plan.liveIn"] === true, s),
   }),
   def({
     key: "buyer.nonResident",
@@ -398,10 +388,10 @@ export const INPUT_DEFS = [
     schema: z.enum(["income_tax", "cgt", "corp_tax", "main_residence"]),
     defaultValue: (s) => (s.buyerEntity === "ltd" ? "corp_tax" : "income_tax"),
     derive: (values) =>
-      values["plan.strategy"] === "live_in_sell"
-        ? "main_residence"
-        : values["buyer.entity"] === "ltd"
-          ? "corp_tax"
+      values["buyer.entity"] === "ltd"
+        ? "corp_tax"
+        : values["plan.liveIn"]
+          ? "main_residence"
           : "income_tax",
   }),
   def({

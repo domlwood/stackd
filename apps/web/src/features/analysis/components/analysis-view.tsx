@@ -104,7 +104,7 @@ export function AnalysisView() {
   if (!built.ok) return null
   const { analysis } = built
   const { flip, keep } = analysis
-  const strategy = built.inputs.plan.strategy
+  const saleName = built.inputs.plan.liveIn ? "Sale" : "Flip"
   const flipHolding = analysis.flip.figures.cashInvested.children?.find(
     (c) => c.key === "flip.holding"
   )
@@ -148,7 +148,11 @@ export function AnalysisView() {
         summary={`${formatMoney(built.inputs.purchase.pricePence)} + ${formatMoney(analysis.sdlt.totalPence)} SDLT`}
       >
         <InputList keys={keysFor("purchase")} />
-        <InputList title="Buyer" keys={keysFor("buyer")} />
+        <InputList
+          title="Buyer"
+          // The buying situation lives with the home switch, where its options match the mode.
+          keys={keysFor("buyer").filter((k) => k !== "buyer.situation")}
+        />
         <Working figures={[analysis.sdlt.figure, analysis.acquisitionCosts]} />
       </AnalysisSection>
 
@@ -190,49 +194,41 @@ export function AnalysisView() {
 
       <AnalysisSection
         id="flip"
-        title={
-          strategy === "brr"
-            ? "Exit A · Flip"
-            : strategy === "live_in_sell"
-              ? "Sale"
-              : "Flip"
-        }
+        title={`Exit A · ${saleName}`}
         summary={formatMoney(flip.profitPence)}
       >
         <InputList keys={["exit.gdv", ...keysFor("flip")]} />
         <Working figures={[flip.figures.profit, flip.figures.tax]} signed />
       </AnalysisSection>
 
-      {strategy === "brr" ? (
-        <AnalysisSection
-          id="keep"
-          title="Exit B · Keep"
-          summary={
-            keep.available
-              ? `${formatMoney(Math.max(0, keep.moneyLeftInPence))} left in`
-              : "Not set up"
-          }
-        >
-          <InputList keys={["exit.gdv", ...keysFor("keep")]} />
-          {keep.available ? (
-            <>
-              <Working
-                figures={[keep.figures.moneyLeftIn, keep.figures.cashflow]}
-                signed
-              />
-              <Working
-                figures={[
-                  keep.figures.newLoan,
-                  keep.figures.icr,
-                  keep.figures.roce,
-                ]}
-              />
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">{keep.reason}</p>
-          )}
-        </AnalysisSection>
-      ) : null}
+      <AnalysisSection
+        id="keep"
+        title="Exit B · Keep"
+        summary={
+          keep.available
+            ? `${formatMoney(Math.max(0, keep.moneyLeftInPence))} left in`
+            : "Not set up"
+        }
+      >
+        <InputList keys={["exit.gdv", ...keysFor("keep")]} />
+        {keep.available ? (
+          <>
+            <Working
+              figures={[keep.figures.moneyLeftIn, keep.figures.cashflow]}
+              signed
+            />
+            <Working
+              figures={[
+                keep.figures.newLoan,
+                keep.figures.icr,
+                keep.figures.roce,
+              ]}
+            />
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">{keep.reason}</p>
+        )}
+      </AnalysisSection>
 
       <AnalysisSection
         id="sensitivity"

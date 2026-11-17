@@ -40,6 +40,29 @@ const HIDDEN_DEAL_FIELDS = new Set([
   "created_by",
 ])
 
+/** Inputs that no longer exist but still appear in older activity. */
+const LEGACY_INPUTS: Record<
+  string,
+  { label: string; values: Record<string, string> }
+> = {
+  "buyer.firstTimeBuyer": {
+    label: "First-time buyer",
+    values: { true: "Yes", false: "No" },
+  },
+  "buyer.additionalProperty": {
+    label: "Additional property (higher-rate SDLT)",
+    values: { true: "Yes", false: "No" },
+  },
+  "plan.strategy": {
+    label: "Plan",
+    values: {
+      live_in_sell: "Live in & sell",
+      flip: "Flip",
+      brr: "Flip or keep (BRR)",
+    },
+  },
+}
+
 function valueOf(payload: unknown): unknown {
   return payload && typeof payload === "object" && "value" in payload
     ? (payload as { value: unknown }).value
@@ -68,9 +91,12 @@ export function describeActivity(
     event.entityType === "deal_proposal"
   ) {
     const def = event.field ? inputDef(event.field) : undefined
-    const label = def?.label ?? event.field ?? "an input"
+    const legacy = event.field ? LEGACY_INPUTS[event.field] : undefined
+    const label = def?.label ?? legacy?.label ?? event.field ?? "an input"
     const fmt = (v: unknown) =>
-      def ? formatInputValue(def, valueOf(v), products) : String(valueOf(v))
+      def
+        ? formatInputValue(def, valueOf(v), products)
+        : (legacy?.values[String(valueOf(v))] ?? String(valueOf(v)))
     const prefix = event.entityType === "deal_proposal" ? "proposed" : "set"
     if (event.action === "create")
       return `${prefix} ${label} to ${fmt(event.newValue)}`

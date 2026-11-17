@@ -212,35 +212,30 @@ describe("keep edge cases", () => {
       )
   })
 
-  it("live in & sell: no keep exit, no tax on the sale, one in-context caveat", () => {
+  it("buying as your home: no tax on the sale, keep still compared, one in-context caveat", () => {
     const a = analyseCore(
       {
         ...INPUTS,
-        plan: { strategy: "live_in_sell" },
+        plan: { liveIn: true },
         buyer: {
           ...INPUTS.buyer,
-          additionalProperty: false,
-          firstTimeBuyer: true,
+          situation: "first_home",
         },
         flip: { ...INPUTS.flip, taxMode: "main_residence" },
       },
       { ...CTX, purchaseProduct: RESI }
     )
-    expect(a.keep.available).toBe(false)
-    expect(!a.keep.available && a.keep.notInPlan).toBe(true)
+    expect(a.keep.available).toBe(true)
     expect(a.flip.taxPence).toBe(0)
     expect(a.flip.profitAfterTaxPence).toBe(a.flip.profitPence)
     const codes = a.warnings.map((w) => w.code)
     expect(codes).toContain("live_in_terms")
     expect(codes).not.toContain("owner_occupier_terms")
-    expect(codes).not.toContain("residential_keep")
-    // Leaving keep out of the plan isn't a reason the deal falls short.
-    expect(a.verdict.reasons.join(" ")).not.toMatch(/let isn't part/)
   })
 
-  it("live in & sell names the exit 'Sale' in the verdict", () => {
+  it("buying as your home names exit A 'Sale' in the verdict", () => {
     const a = analyseCore(
-      { ...INPUTS, plan: { strategy: "live_in_sell" } },
+      { ...INPUTS, plan: { liveIn: true } },
       { ...CTX, purchaseProduct: RESI }
     )
     expect(a.verdict.criteria.map((c) => c.label)).toContainEqual(
@@ -249,15 +244,20 @@ describe("keep edge cases", () => {
     expect(a.verdict.criteria.some((c) => /Flip/.test(c.label))).toBe(false)
   })
 
-  it("flipping with first-time buyer terms keeps the owner-occupier warning", () => {
+  it("always analyses both exits", () => {
+    const a = analyseCore({ ...INPUTS, plan: { liveIn: false } }, CTX)
+    expect(a.keep.available).toBe(true)
+    expect(a.verdict.criteria.some((c) => /Flip/.test(c.label))).toBe(true)
+  })
+
+  it("first-time buyer terms without living there keep the owner-occupier warning", () => {
     const a = analyseCore(
       {
         ...INPUTS,
-        plan: { strategy: "flip" },
+        plan: { liveIn: false },
         buyer: {
           ...INPUTS.buyer,
-          additionalProperty: false,
-          firstTimeBuyer: true,
+          situation: "first_home",
         },
       },
       { ...CTX, purchaseProduct: RESI }

@@ -1,11 +1,12 @@
 import type {
   BuyerEntity,
+  BuyerSituation,
   DealInputs,
   Pence,
   Ratio,
-  Strategy,
   TaxMode,
 } from "@/lib/calc/types"
+import { normaliseBuyer } from "@/lib/calc/sdlt"
 import { refurbItemCostKey } from "./registry"
 import type { ResolvedInputs } from "./resolve"
 
@@ -26,18 +27,19 @@ export function toDealInputs(
   const months = (key: string) => v[key] as number
   const bool = (key: string) => v[key] as boolean
 
+  const { liveIn, buyer } = normaliseBuyer(v["plan.liveIn"] === true, {
+    entity: v["buyer.entity"] as BuyerEntity,
+    situation: v["buyer.situation"] as BuyerSituation,
+    nonResident: bool("buyer.nonResident"),
+    corporateRelief: bool("buyer.corporateRelief"),
+  })
+
   return {
     purchaseProductId: (v["purchaseFinance.product"] as string | null) ?? null,
     refiProductId: (v["keep.product"] as string | null) ?? null,
     inputs: {
-      plan: { strategy: v["plan.strategy"] as Strategy },
-      buyer: {
-        entity: v["buyer.entity"] as BuyerEntity,
-        additionalProperty: bool("buyer.additionalProperty"),
-        nonResident: bool("buyer.nonResident"),
-        firstTimeBuyer: bool("buyer.firstTimeBuyer"),
-        corporateRelief: bool("buyer.corporateRelief"),
-      },
+      plan: { liveIn },
+      buyer,
       purchase: {
         pricePence: money("purchase.price"),
         legalPence: money("purchase.legal"),

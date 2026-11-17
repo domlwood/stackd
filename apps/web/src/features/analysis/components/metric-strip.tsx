@@ -60,8 +60,6 @@ export function MetricStrip() {
   }
   const { analysis } = built
   const { flip, keep, affordability, verdict } = analysis
-  const strategy = built.inputs.plan.strategy
-  const showKeep = strategy === "brr"
 
   return (
     <section aria-label="Deal summary" className="flex flex-col gap-3">
@@ -129,12 +127,10 @@ export function MetricStrip() {
         </div>
       </Card>
 
-      <div
-        className={cn("grid gap-3", showKeep && "grid-cols-2 xl:grid-cols-1")}
-      >
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-1">
         <Card size="sm" className="gap-2 px-3 sm:px-4">
           <div className="text-sm font-medium">
-            {strategy === "live_in_sell" ? "Sale" : "Flip"}
+            Exit A · {built.inputs.plan.liveIn ? "Sale" : "Flip"}
           </div>
           <Metric
             label="Profit"
@@ -147,65 +143,58 @@ export function MetricStrip() {
             <Metric label="Timeline" value={`${flip.months} mo`} />
           </div>
         </Card>
-        {showKeep ? (
-          <Card size="sm" className="gap-2 px-3 sm:px-4">
-            <div className="text-sm font-medium">Keep</div>
-            {keep.available ? (
-              <>
+        <Card size="sm" className="gap-2 px-3 sm:px-4">
+          <div className="text-sm font-medium">Exit B · Keep</div>
+          {keep.available ? (
+            <>
+              <Metric
+                label="Money left in"
+                value={
+                  keep.moneyLeftInPence <= 0
+                    ? "£0"
+                    : formatMoney(keep.moneyLeftInPence)
+                }
+                tone={keep.moneyLeftInPence <= 0 ? "positive" : undefined}
+                sub={
+                  keep.moneyLeftInPence < 0
+                    ? `${formatMoney(-keep.moneyLeftInPence)} pulled out`
+                    : `Refinance at month ${keep.months}`
+                }
+              />
+              <div className="grid grid-cols-2 gap-2">
                 <Metric
-                  label="Money left in"
-                  value={
-                    keep.moneyLeftInPence <= 0
-                      ? "£0"
-                      : formatMoney(keep.moneyLeftInPence)
-                  }
-                  tone={keep.moneyLeftInPence <= 0 ? "positive" : undefined}
-                  sub={
-                    keep.moneyLeftInPence < 0
-                      ? `${formatMoney(-keep.moneyLeftInPence)} pulled out`
-                      : `Refinance at month ${keep.months}`
-                  }
+                  label="Cashflow"
+                  value={`${formatMoney(keep.monthlyCashflowPence)}/m`}
+                  tone={keep.monthlyCashflowPence < 0 ? "negative" : undefined}
                 />
-                <div className="grid grid-cols-2 gap-2">
-                  <Metric
-                    label="Cashflow"
-                    value={`${formatMoney(keep.monthlyCashflowPence)}/m`}
-                    tone={
-                      keep.monthlyCashflowPence < 0 ? "negative" : undefined
-                    }
-                  />
-                  <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">
-                      ROCE · ICR
-                    </div>
-                    <div className="flex items-center gap-1.5 text-base font-semibold tabular-nums sm:text-lg">
-                      {Number.isFinite(keep.roce) ? (
-                        formatPercent(keep.roce, 1)
-                      ) : (
-                        <InfinityIcon
-                          className="size-5"
-                          aria-label="Infinite"
-                        />
+                <div className="min-w-0">
+                  <div className="text-xs text-muted-foreground">
+                    ROCE · ICR
+                  </div>
+                  <div className="flex items-center gap-1.5 text-base font-semibold tabular-nums sm:text-lg">
+                    {Number.isFinite(keep.roce) ? (
+                      formatPercent(keep.roce, 1)
+                    ) : (
+                      <InfinityIcon className="size-5" aria-label="Infinite" />
+                    )}
+                    <span
+                      className={cn(
+                        "text-xs font-medium",
+                        keep.icrPass
+                          ? "text-positive-foreground"
+                          : "text-negative-foreground"
                       )}
-                      <span
-                        className={cn(
-                          "text-xs font-medium",
-                          keep.icrPass
-                            ? "text-positive-foreground"
-                            : "text-negative-foreground"
-                        )}
-                      >
-                        {keep.icrPass ? "ICR ✓" : "ICR ✗"}
-                      </span>
-                    </div>
+                    >
+                      {keep.icrPass ? "ICR ✓" : "ICR ✗"}
+                    </span>
                   </div>
                 </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">{keep.reason}</p>
-            )}
-          </Card>
-        ) : null}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">{keep.reason}</p>
+          )}
+        </Card>
       </div>
     </section>
   )

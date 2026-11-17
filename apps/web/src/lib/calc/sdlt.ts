@@ -1,32 +1,68 @@
 import { pct, roundPence, sum } from "./money"
 import type { SdltRules } from "./rules/schema"
-import type { DealInputs, Figure, Pence } from "./types"
+import type { BuyerSituation, DealInputs, Figure, Pence } from "./types"
 
 export type SdltResult = {
   totalPence: Pence
   basis: "standard" | "higher_rates" | "corporate_flat" | "first_time_buyer"
+  /** Moving home before the old one sells: the surcharge you can claim back. */
+  reclaimablePence: Pence
   figure: Figure
 }
 
 const SDLT_INPUTS = [
   "purchase.price",
-  "buyer.firstTimeBuyer",
+  "buyer.situation",
   "buyer.entity",
-  "buyer.additionalProperty",
   "buyer.nonResident",
   "buyer.corporateRelief",
 ]
 
-/** First-time buyer relief applies to a personal, non-additional purchase at or under the price cap. */
+/** Situations that only make sense for a home you'll live in, and for an investment. */
+export const HOME_SITUATIONS = [
+  "first_home",
+  "moving_home",
+  "moving_home_unsold",
+] as const satisfies readonly BuyerSituation[]
+export const INVESTMENT_SITUATIONS = [
+  "no_other_property",
+  "additional",
+] as const satisfies readonly BuyerSituation[]
+
+/**
+ * Only a person can buy a home to live in, and first-time buyer relief needs
+ * exactly that. A situation saved for the other mode is read as its nearest
+ * equivalent, so relief can never apply to an investment or a company.
+ */
+export function normaliseBuyer(
+  liveIn: boolean,
+  buyer: DealInputs["buyer"]
+): { liveIn: boolean; buyer: DealInputs["buyer"] } {
+  const home = liveIn && buyer.entity === "personal"
+  const s = buyer.situation
+  const situation: BuyerSituation = home
+    ? s === "no_other_property"
+      ? "moving_home"
+      : s === "additional"
+        ? "moving_home_unsold"
+        : s
+    : s === "moving_home_unsold"
+      ? "additional"
+      : s === "first_home" || s === "moving_home"
+        ? "no_other_property"
+        : s
+  return { liveIn: home, buyer: { ...buyer, situation } }
+}
+
+/** First-time buyer relief applies to a personal first home at or under the price cap. */
 export function firstTimeBuyerReliefApplies(
   buyer: DealInputs["buyer"],
   pricePence: Pence,
   rules: SdltRules
 ): boolean {
   return (
-    buyer.firstTimeBuyer &&
+    buyer.situation === "first_home" &&
     buyer.entity === "personal" &&
-    !buyer.additionalProperty &&
     pricePence <= rules.firstTimeBuyer.maxPricePence
   )
 }
@@ -41,11 +77,12 @@ function formatBand(fromPence: Pence, toPence: Pence | null): string {
 /**
  * Stamp Duty Land Tax (England & NI, residential).
  *  - Banded: Σ max(0, min(P, upper) − lower) × (band rate + surcharges)
- *  - Higher rates (+surcharge on every band) when buying an additional dwelling,
- *    or as a company, and P ≥ the minimum price (£40k)
+ *  - Higher rates (+surcharge on every band) when you'll own another home
+ *    (additional, or moving before the old home sells: reclaimable), or as a
+ *    company, and P ≥ the minimum price (£40k)
  *  - Non-resident surcharge on top when applicable
  *  - Company buying above £500k without relief: flat rate (17%) on the whole price
- *  - First-time buyer (personal, not additional, ≤ £500k): 0% to £300k, 5% above
+ *  - First-time buyer (personal first home, ≤ £500k): 0% to £300k, 5% above
  */
 export function calculateSdlt(
   buyer: DealInputs["buyer"],
@@ -64,6 +101,7 @@ export function calculateSdlt(
     return {
       totalPence,
       basis: "corporate_flat",
+      reclaimablePence: 0,
       figure: {
         key: "sdlt",
         label: "Stamp duty",
@@ -98,6 +136,7 @@ export function calculateSdlt(
     return {
       totalPence,
       basis: "first_time_buyer",
+      reclaimablePence: 0,
       figure: {
         key: "sdlt",
         label: "Stamp duty",
@@ -111,11 +150,26 @@ export function calculateSdlt(
     }
   }
 
+  const personalHigher =
+    buyer.situation === "additional" || buyer.situation === "moving_home_unsold"
   const higherRates =
-    (buyer.additionalProperty || buyer.entity === "ltd") &&
+    (personalHigher || buyer.entity === "ltd") &&
     pricePence >= rules.additionalDwellingMinPricePence
-  const surcharge =
-    (higherRates ? rules.additionalDwellingSurcharge : 0) + nonResident
+  const higherSurcharge = higherRates ? rules.additionalDwellingSurcharge : 0
+  const surcharge = higherSurcharge + nonResident
+  // Replacing your main home: HMRC refunds the surcharge once the old one sells (within 3 years).
+  const reclaimablePence =
+    higherRates &&
+    buyer.entity === "personal" &&
+    buyer.situation === "moving_home_unsold"
+      ? pct(pricePence, higherSurcharge)
+      : 0
+  const reason =
+    buyer.entity === "ltd"
+      ? "company purchase"
+      : buyer.situation === "moving_home_unsold"
+        ? "you'll own two homes until the old one sells"
+        : "you'll own another home"
 
   const children: Figure[] = rules.bands.map((band, index) => {
     const upper = band.toPence ?? Number.POSITIVE_INFINITY
@@ -130,18 +184,29 @@ export function calculateSdlt(
   })
 
   const totalPence = sum(children.map((c) => c.value))
+  const standardWhy =
+    buyer.entity === "personal" && buyer.situation === "first_home"
+      ? "First-time buyer relief stops above £" +
+        (rules.firstTimeBuyer.maxPricePence / 100).toLocaleString("en-GB") +
+        ", so standard rates apply."
+      : undefined
   return {
     totalPence,
     basis: higherRates ? "higher_rates" : "standard",
+    reclaimablePence,
     figure: {
       key: "sdlt",
       label: "Stamp duty",
       value: totalPence,
       unit: "pence",
       formula: higherRates
-        ? `Banded rates + ${(rules.additionalDwellingSurcharge * 100).toFixed(0)}% higher-rates surcharge${nonResident ? " + non-resident surcharge" : ""}`
+        ? `Banded rates + ${(rules.additionalDwellingSurcharge * 100).toFixed(0)}% higher-rates surcharge (${reason})${nonResident ? " + non-resident surcharge" : ""}`
         : `Banded rates${nonResident ? " + non-resident surcharge" : ""}`,
       inputs: SDLT_INPUTS,
+      note:
+        reclaimablePence > 0
+          ? `You can claim back the £${(reclaimablePence / 100).toLocaleString("en-GB")} surcharge if you sell your previous home within 3 years.`
+          : standardWhy,
       children: children.filter((c) => c.value > 0),
     },
   }

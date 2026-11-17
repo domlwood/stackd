@@ -30,6 +30,27 @@ describe("describeActivity", () => {
       })
     ).toBe("reset Voids to its default")
   })
+  it("labels the old plan input and the home switch readably", () => {
+    expect(
+      describeActivity({
+        action: "update",
+        entityType: "deal_input",
+        field: "plan.strategy",
+        oldValue: { value: "flip" },
+        newValue: { value: "live_in_sell" },
+      })
+    ).toBe("changed Plan: Flip → Live in & sell")
+    expect(
+      describeActivity({
+        action: "create",
+        entityType: "deal_input",
+        field: "plan.liveIn",
+        oldValue: null,
+        newValue: { value: true },
+      })
+    ).toMatch(/^set Buying as your home to /)
+  })
+
   it("describes status moves and hides noise", () => {
     expect(
       describeActivity({
