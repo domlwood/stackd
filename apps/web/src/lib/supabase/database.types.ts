@@ -253,6 +253,85 @@ export type Database = {
           },
         ]
       }
+      deal_note: {
+        Row: {
+          author_id: string | null
+          body: string | null
+          comp_address: string | null
+          comp_beds: number | null
+          comp_date: string | null
+          comp_floor_area_sqm: number | null
+          comp_price_pence: number | null
+          comp_status: string | null
+          created_at: string
+          deal_id: string
+          id: string
+          kind: string
+          link_url: string | null
+          pinned: boolean
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string | null
+          comp_address?: string | null
+          comp_beds?: number | null
+          comp_date?: string | null
+          comp_floor_area_sqm?: number | null
+          comp_price_pence?: number | null
+          comp_status?: string | null
+          created_at?: string
+          deal_id: string
+          id?: string
+          kind?: string
+          link_url?: string | null
+          pinned?: boolean
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string | null
+          comp_address?: string | null
+          comp_beds?: number | null
+          comp_date?: string | null
+          comp_floor_area_sqm?: number | null
+          comp_price_pence?: number | null
+          comp_status?: string | null
+          created_at?: string
+          deal_id?: string
+          id?: string
+          kind?: string
+          link_url?: string | null
+          pinned?: boolean
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_note_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_note_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_note_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       erc_band: {
         Row: {
           from_month: number

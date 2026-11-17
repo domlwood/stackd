@@ -16,6 +16,8 @@ import { DealScrollReset } from "@/features/deals/components/deal-scroll-reset"
 import { DealTabs } from "@/features/deals/components/deal-tabs"
 import { ListingSummary } from "@/features/deals/components/listing-summary"
 import { getDealWorkspace } from "@/features/deals/queries"
+import { NotesView } from "@/features/notes/components/notes-view"
+import { listDealNotes } from "@/features/notes/queries"
 
 export async function generateMetadata({
   params,
@@ -30,7 +32,10 @@ export default async function DealLayout({
   children,
 }: LayoutProps<"/deals/[id]"> & { children: ReactNode }) {
   const { id } = await params
-  const data = await getDealWorkspace(id)
+  const [data, notes] = await Promise.all([
+    getDealWorkspace(id),
+    listDealNotes(id),
+  ])
   return (
     <DealProvider data={data}>
       <DealScrollReset dealId={id} />
@@ -66,6 +71,7 @@ export default async function DealLayout({
             </aside>
           </AnalysisReady>
           <div className="flex min-w-0 flex-col gap-4 xl:col-start-1">
+            <NotesView notes={notes} />
             <DealTabs dealId={id} />
             {children}
             <p className="text-xs text-muted-foreground">

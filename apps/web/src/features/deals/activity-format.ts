@@ -121,6 +121,19 @@ export function describeActivity(
       return `moved the deal: ${plain("status", event.oldValue)} → ${plain("status", event.newValue)}`
     return `changed ${label}: ${plain(event.field, event.oldValue)} → ${plain(event.field, event.newValue)}`
   }
+  if (event.entityType === "deal_note") {
+    const row = (event.newValue ?? event.oldValue) as {
+      kind?: string
+      comp_address?: string | null
+    } | null
+    const what =
+      row?.kind === "comparable"
+        ? `a comparable${row.comp_address ? ` (${row.comp_address})` : ""}`
+        : "a note"
+    if (event.action === "create") return `added ${what}`
+    if (event.action === "delete") return `deleted ${what}`
+    return null
+  }
   if (event.entityType === "refurb_item") {
     const row = (event.newValue ?? event.oldValue) as {
       category?: string

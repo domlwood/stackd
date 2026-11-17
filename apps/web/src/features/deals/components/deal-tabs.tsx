@@ -6,7 +6,6 @@ import type { Route } from "next"
 
 import { cn } from "@workspace/ui/lib/utils"
 
-// Comps and Discussion return as tabs once they have real content.
 const TABS = [
   { segment: "", label: "Analysis" },
   { segment: "/listing", label: "Listing" },

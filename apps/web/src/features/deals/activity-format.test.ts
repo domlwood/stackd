@@ -51,6 +51,27 @@ describe("describeActivity", () => {
     ).toMatch(/^set Buying as your home to /)
   })
 
+  it("describes notes and comparables being added and removed", () => {
+    expect(
+      describeActivity({
+        action: "create",
+        entityType: "deal_note",
+        field: null,
+        oldValue: null,
+        newValue: { kind: "comparable", comp_address: "3 Test St" },
+      })
+    ).toBe("added a comparable (3 Test St)")
+    expect(
+      describeActivity({
+        action: "delete",
+        entityType: "deal_note",
+        field: null,
+        oldValue: { kind: "note" },
+        newValue: null,
+      })
+    ).toBe("deleted a note")
+  })
+
   it("describes status moves and hides noise", () => {
     expect(
       describeActivity({
