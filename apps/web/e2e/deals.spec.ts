@@ -58,7 +58,7 @@ test("create a deal manually, edit a number, pass with a reason, delete", async 
 
   // Notes: add one from the bar at the bottom (phones/tablets) or the panel (wide).
   const composer = page.getByRole("button", {
-    name: "Add a note or comparable…",
+    name: "Add a note…",
   })
   if (await composer.isVisible()) await composer.click()
   const noteBox = page.getByLabel("Note", { exact: true }).last()

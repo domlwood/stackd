@@ -9,7 +9,6 @@ import {
   PinIcon,
   PinOffIcon,
   ScaleIcon,
-  StickyNoteIcon,
   Trash2Icon,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -157,7 +156,7 @@ export function NoteComposerBar() {
         className="flex h-11 w-full items-center gap-2 rounded-full border bg-card px-4 text-left text-sm text-muted-foreground shadow-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <MessageSquarePlusIcon className="size-4 shrink-0" aria-hidden />
-        Add a note or comparable…
+        Add a note…
       </button>
       <ResponsiveSheet open={open} onOpenChange={setOpen} title="Add to notes">
         {open ? (
@@ -419,7 +418,7 @@ function hostOf(url: string): string {
   }
 }
 
-/** Add a note or comparable, or edit one (when `note` is given). */
+/** Add a note, or edit one (when `note` is given). */
 function NoteForm({
   dealId,
   note,
@@ -436,7 +435,8 @@ function NoteForm({
   compact?: boolean
 }) {
   const comp = note?.comp
-  const [kind, setKind] = useState<Kind>(note?.kind ?? "note")
+  // New entries are always notes; existing comparables can still be edited.
+  const kind: Kind = note?.kind ?? "note"
   const [body, setBody] = useState(note?.body ?? "")
   const [linkUrl, setLinkUrl] = useState(note?.linkUrl ?? "")
   const [address, setAddress] = useState(comp?.address ?? "")
@@ -526,27 +526,6 @@ function NoteForm({
       }}
     >
       <FieldGroup className="gap-3">
-        {note ? null : (
-          <ToggleGroup
-            aria-label="What are you adding?"
-            variant="outline"
-            size="sm"
-            value={[kind]}
-            onValueChange={(v: string[]) => {
-              if (v[0]) {
-                setKind(v[0] as Kind)
-                setErrors({})
-              }
-            }}
-          >
-            <ToggleGroupItem value="note">
-              <StickyNoteIcon aria-hidden /> Note
-            </ToggleGroupItem>
-            <ToggleGroupItem value="comparable">
-              <ScaleIcon aria-hidden /> Comparable
-            </ToggleGroupItem>
-          </ToggleGroup>
-        )}
 
         {kind === "comparable" ? (
           <div className="grid gap-3 sm:grid-cols-2">
