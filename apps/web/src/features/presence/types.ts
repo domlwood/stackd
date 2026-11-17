@@ -1,5 +1,3 @@
-export type DealViewer = { userId: string; lastSeenAt: string }
-
 export type Unread = {
   unread: number
   lastActivityAt: string

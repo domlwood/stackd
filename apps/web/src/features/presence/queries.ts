@@ -7,20 +7,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { groupChanged } from "./feed"
 import type { DealViewer, FeedDeal, TodayFeed, Unread } from "./types"
 
-/** Everyone's last real visit to a deal (yours included). */
-export const listDealViewers = cache(
-  async (dealId: string): Promise<DealViewer[]> => {
-    const supabase = await createSupabaseServerClient()
-    const { data, error } = await supabase
-      .from("deal_view")
-      .select("user_id, viewed_at")
-      .eq("deal_id", dealId)
-      .not("viewed_at", "is", null)
-    if (error) throw new Error(`Could not load who's viewed: ${error.message}`)
-    return data.map((r) => ({ userId: r.user_id, lastSeenAt: r.viewed_at! }))
-  }
-)
-
 /** Per deal: how many changes others made since you last opened it. */
 export const getUnreadByDeal = cache(
   async (): Promise<Record<string, Unread>> => {

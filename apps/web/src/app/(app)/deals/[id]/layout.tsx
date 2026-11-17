@@ -13,7 +13,6 @@ import {
 } from "@/features/notes/components/notes-view"
 import { listDealNotes } from "@/features/notes/queries"
 import { MarkSeen } from "@/features/presence/components/mark-seen"
-import { listDealViewers } from "@/features/presence/queries"
 
 export async function generateMetadata({
   params,
@@ -28,10 +27,9 @@ export default async function DealLayout({
   children,
 }: LayoutProps<"/deals/[id]"> & { children: ReactNode }) {
   const { id } = await params
-  const [data, notes, viewers] = await Promise.all([
+  const [data, notes] = await Promise.all([
     getDealWorkspace(id),
     listDealNotes(id),
-    listDealViewers(id),
   ])
   return (
     <DealProvider data={data}>
@@ -41,7 +39,7 @@ export default async function DealLayout({
           on the left, the shared notes panel on the right. */}
       <div className="mx-auto grid w-full max-w-3xl gap-4 xl:max-w-6xl xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start xl:gap-6">
         <div className="flex min-w-0 flex-col gap-4">
-          <DealHeader viewers={viewers} />
+          <DealHeader />
           <DealTabs dealId={id} noteCount={notes.length} />
           {children}
           <p className="text-xs text-muted-foreground">

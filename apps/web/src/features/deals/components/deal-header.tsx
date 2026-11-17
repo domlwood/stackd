@@ -30,9 +30,6 @@ import {
 
 import { ConfirmDialog } from "@/components/blocks/confirm-dialog"
 import { useDealBase } from "@/features/analysis/components/deal-provider"
-import type { DealViewer } from "@/features/presence/types"
-import { TakeControl } from "@/features/takes/components/take-control"
-import type { DealTakes } from "@/features/takes/takes"
 import { deleteDeal } from "../actions"
 import { PROPERTY_TYPE_LABELS } from "../schemas"
 import { toggleArchive } from "./archive"
@@ -50,14 +47,8 @@ function listingLabel(url: string): string {
   }
 }
 
-export function DealHeader({
-  viewers = [],
-  takes = {},
-}: {
-  viewers?: DealViewer[]
-  takes?: DealTakes
-}) {
-  const { data, memberName } = useDealBase()
+export function DealHeader() {
+  const { data } = useDealBase()
   const { deal } = data
   const router = useRouter()
   const [confirm, setConfirm] = useState(false)
@@ -167,12 +158,6 @@ export function DealHeader({
           </DropdownMenu>
         </div>
       </div>
-      <TakeControl
-        dealId={deal.id}
-        takes={takes}
-        members={data.members}
-        currentUserId={data.currentUserId}
-      />
       {/* The listing is where the details live: photos, floorplan, description. */}
       <div className="flex flex-wrap items-center gap-2">
         {deal.listingUrl ? (
@@ -218,4 +203,3 @@ export function DealHeader({
     </div>
   )
 }
-
