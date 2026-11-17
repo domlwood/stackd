@@ -33,7 +33,7 @@ test("seeded user can sign in and sees the shell", async ({
   await page.getByLabel("Password").fill(password ?? "")
   await page.getByRole("button", { name: "Sign in" }).click()
   await expect(
-    page.getByRole("heading", { name: "Today", exact: true, level: 1 })
+    page.getByRole("heading", { name: "Inbox", exact: true, level: 1 })
   ).toBeVisible()
   const primaryNav = isMobile
     ? page.getByRole("navigation", { name: "Primary" })

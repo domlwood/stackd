@@ -22,7 +22,7 @@ export type FeedDeal = {
   coverPhotoUrl: string | null
 }
 
-export type TodayFeed = {
+export type InboxFeed = {
   /** Deals your partner changed since you last opened them, newest first. */
   changed: { deal: FeedDeal; events: FeedEvent[]; total: number }[]
 }

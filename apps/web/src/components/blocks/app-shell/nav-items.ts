@@ -18,10 +18,10 @@ export type NavItem = {
 // Settings returns to the nav once it has real controls (buy box, defaults).
 export const NAV_ITEMS: readonly NavItem[] = [
   {
-    title: "Today",
-    href: "/today",
+    title: "Inbox",
+    href: "/inbox",
     icon: InboxIcon,
-    matches: (p) => p.startsWith("/today"),
+    matches: (p) => p.startsWith("/inbox"),
   },
   {
     title: "Deals",

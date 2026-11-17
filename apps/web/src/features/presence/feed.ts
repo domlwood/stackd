@@ -1,4 +1,4 @@
-import type { FeedDeal, FeedEvent, TodayFeed } from "./types"
+import type { FeedDeal, FeedEvent, InboxFeed } from "./types"
 
 /**
  * Groups other people's activity into "changed since you last looked", per
@@ -10,7 +10,7 @@ export function groupChanged(
   mySeen: ReadonlyMap<string, string>,
   deals: ReadonlyMap<string, FeedDeal>,
   perDeal = 3
-): TodayFeed["changed"] {
+): InboxFeed["changed"] {
   const groups = new Map<string, FeedEvent[]>()
   for (const e of events) {
     const deal = deals.get(e.dealId)

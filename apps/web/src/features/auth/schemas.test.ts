@@ -2,11 +2,11 @@ import { safeRedirectPath, signInSchema } from "./schemas"
 
 describe("safeRedirectPath", () => {
   it.each([
-    [undefined, "/today"],
+    [undefined, "/inbox"],
     ["/finance", "/finance"],
-    ["https://evil.example", "/today"],
-    ["//evil.example", "/today"],
-    ["/\\evil.example", "/today"],
+    ["https://evil.example", "/inbox"],
+    ["//evil.example", "/inbox"],
+    ["/\\evil.example", "/inbox"],
   ])("%s → %s", (input, expected) => {
     expect(safeRedirectPath(input)).toBe(expected)
   })

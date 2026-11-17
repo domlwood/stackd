@@ -5,7 +5,7 @@ import { cache } from "react"
 import { requireSession } from "@/lib/auth/session"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { groupChanged } from "./feed"
-import type { DealViewer, FeedDeal, TodayFeed, Unread } from "./types"
+import type { FeedDeal, InboxFeed, Unread } from "./types"
 
 /** Per deal: how many changes others made since you last opened it. */
 export const getUnreadByDeal = cache(
@@ -28,8 +28,8 @@ export const getUnreadByDeal = cache(
 
 const FEED_DAYS = 30
 
-/** Today: what others changed since you last looked. */
-export const getTodayFeed = cache(async (): Promise<TodayFeed> => {
+/** Inbox: what others changed since you last opened each deal (last 30 days). */
+export const getInboxFeed = cache(async (): Promise<InboxFeed> => {
   const session = await requireSession()
   const supabase = await createSupabaseServerClient()
   const since = new Date(Date.now() - FEED_DAYS * 86_400_000).toISOString()
@@ -59,7 +59,7 @@ export const getTodayFeed = cache(async (): Promise<TodayFeed> => {
       .is("archived_at", null),
   ])
   for (const r of [mine, events, deals])
-    if (r.error) throw new Error(`Could not load Today: ${r.error.message}`)
+    if (r.error) throw new Error(`Could not load Inbox: ${r.error.message}`)
 
   const dealMap = new Map<string, FeedDeal>(
     deals.data!.map((d) => [

@@ -10,20 +10,20 @@ import { formatDateTime, formatRelative } from "@/lib/format/date"
 import { describeActivity } from "@/features/deals/activity-format"
 import { listAllProducts } from "@/features/finance/queries"
 import { firstName, greeting } from "@/features/presence/feed"
-import { getTodayFeed } from "@/features/presence/queries"
+import { getInboxFeed } from "@/features/presence/queries"
 import type { FeedDeal } from "@/features/presence/types"
 import { listMembers } from "@/features/workspace/queries"
 
-export const metadata: Metadata = { title: "Today" }
+export const metadata: Metadata = { title: "Inbox" }
 
 /**
- * Today: what your partner did since you last looked. Opening a deal marks
+ * Inbox: what your partner did since you last looked. Opening a deal marks
  * its changes as seen.
  */
-export default async function TodayPage() {
+export default async function InboxPage() {
   const [session, feed, members, products] = await Promise.all([
     requireSession(),
-    getTodayFeed(),
+    getInboxFeed(),
     listMembers(),
     listAllProducts(),
   ])

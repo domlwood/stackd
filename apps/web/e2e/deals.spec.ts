@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await page.getByLabel("Email").fill(process.env.SEED_USER_A_EMAIL ?? "")
   await page.getByLabel("Password").fill(process.env.SEED_USER_A_PASSWORD ?? "")
   await page.getByRole("button", { name: "Sign in" }).click()
-  await page.waitForURL("**/today")
+  await page.waitForURL("**/inbox")
 })
 
 test("create a deal manually, edit a number, pass with a reason, delete", async ({
